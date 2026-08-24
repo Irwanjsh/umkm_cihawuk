@@ -99,7 +99,7 @@
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand">
-            <strong>Tani Cihawuk</strong>
+            <strong>&#127811; Tani Cihawuk</strong>
             <p>Katalog digital UMKM &amp; pelaku usaha Desa Cihawuk — menciptakan transaksi yang transparan dan saling menguntungkan.</p>
           </div>
           <div class="footer-column">
@@ -116,12 +116,10 @@
               <a href="${basePrefix}daftar-produsen.html">Daftar sebagai Produsen</a>
               <a href="${basePrefix}produsen/login.html">Login Produsen</a>
             </div>
-            <p style="margin-top:0.75rem;color:rgba(255,255,255,.68);font-size:0.8rem;">Sudah terdaftar sebagai produsen?</p>
-            <a href="${basePrefix}produsen/login.html" class="btn btn-light btn-block" style="margin-top:0.5rem;">Login Produsen</a>
           </div>
         </div>
         <div class="footer-bottom">
-          <span>&copy; ${new Date().getFullYear()} Tani Cihawuk — Proker KKN UMB kel_Cihawuk1_2026 .</span>
+          <span>&copy; ${new Date().getFullYear()} Tani Cihawuk — Proker KKN UMB kel_Cihawuk1_2026.</span>
           <span>Dibuat untuk menghubungkan warga desa dengan pembeli.</span>
         </div>
       </div>`;
