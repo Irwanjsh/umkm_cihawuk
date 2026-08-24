@@ -233,9 +233,14 @@
     const { data, error } = await client.from('products').insert(snake).select().single();
     if(error){
       console.error('[CihawukData] addProduct:', error.message);
-      return null;
+      let msg = error.message;
+      if(error.message && (error.message.includes('out of range') || error.message.includes('22003'))){
+        msg = 'Harga yang dimasukkan melebihi batas angka maksimal sistem (maksimal Rp 1.000.000.000).';
+      }
+      return { ok: false, message: msg };
     }
-    return productRowToCamel(data);
+    const camel = productRowToCamel(data);
+    return Object.assign(camel, { ok: true, data: camel });
   }
   async function getProductById(id){
     if(!id) return null;

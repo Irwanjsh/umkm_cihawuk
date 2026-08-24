@@ -38,7 +38,7 @@
                 </div>
               </div>
               <div class="form-row">
-                <div class="form-group"><label for="harga">Harga (Rp)</label><input type="number" id="harga" required min="0" placeholder="15000"></div>
+                <div class="form-group"><label for="harga">Harga (Rp)</label><input type="number" id="harga" required min="0" max="1000000000" placeholder="15000"></div>
                 <div class="form-group"><label for="kategori">Kategori</label><select id="kategori" required></select></div>
               </div>
               <div class="form-group"><label for="deskripsi">Deskripsi</label><textarea id="deskripsi" required placeholder="Jelaskan produk Anda..."></textarea></div>
@@ -100,10 +100,24 @@
       const submitBtn = e.target.querySelector('button[type=submit]');
       submitBtn.disabled = true;
 
+      const hargaVal = Number(document.getElementById('harga').value);
+      if(isNaN(hargaVal) || hargaVal < 0){
+        submitError.textContent = 'Harga tidak valid.';
+        submitError.style.display = 'block';
+        submitBtn.disabled = false;
+        return;
+      }
+      if(hargaVal > 1000000000){
+        submitError.textContent = 'Harga terlalu besar. Maksimal Rp 1.000.000.000 (1 Milyar Rupiah).';
+        submitError.style.display = 'block';
+        submitBtn.disabled = false;
+        return;
+      }
+
       const newProduct = await D.addProduct({
         producerId: producer.id,
         nama: document.getElementById('nama').value.trim(),
-        harga: Number(document.getElementById('harga').value),
+        harga: hargaVal,
         kategori: document.getElementById('kategori').value,
         deskripsi: document.getElementById('deskripsi').value.trim(),
         ketersediaan: document.getElementById('ketersediaan').value,
@@ -112,8 +126,8 @@
         foto: ''
       });
 
-      if(!newProduct){
-        submitError.textContent = 'Gagal menyimpan produk. Periksa koneksi Anda dan coba lagi.';
+      if(!newProduct || newProduct.ok === false){
+        submitError.textContent = (newProduct && newProduct.message) || 'Gagal menyimpan produk. Periksa kembali data Anda dan coba lagi.';
         submitError.style.display = 'block';
         submitBtn.disabled = false;
         return;
