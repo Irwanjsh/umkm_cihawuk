@@ -19,6 +19,61 @@
     {href:'produk.html', key:'produk', label:'Kelola Produk', icon:'&#128715;'}
   ];
 
+  async function updateAdminBadges(){
+    try {
+      const D = window.CihawukData;
+      if(!D) return;
+      const [producers, products] = await Promise.all([
+        D.getProducers().catch(()=>[]),
+        D.getProducts().catch(()=>[])
+      ]);
+      const pendingProducers = (producers || []).filter(p => p.status === 'PENDING').length;
+      const pendingProducts = (products || []).filter(p => p.status === 'PENDING').length;
+
+      const pengajuanBadge = document.getElementById('nav-badge-pengajuan');
+      if(pengajuanBadge){
+        if(pendingProducers > 0){
+          pengajuanBadge.textContent = pendingProducers;
+          pengajuanBadge.style.display = 'inline-flex';
+        } else {
+          pengajuanBadge.style.display = 'none';
+        }
+      }
+
+      const produkBadge = document.getElementById('nav-badge-produk');
+      if(produkBadge){
+        if(pendingProducts > 0){
+          produkBadge.textContent = pendingProducts;
+          produkBadge.style.display = 'inline-flex';
+        } else {
+          produkBadge.style.display = 'none';
+        }
+      }
+
+      const totalPending = pendingProducers + pendingProducts;
+      const notifWrap = document.getElementById('topbar-notif-wrap');
+      const notifCount = document.getElementById('topbar-notif-count');
+      const notifBtn = document.getElementById('topbar-notif-btn');
+      if(notifWrap && notifCount){
+        if(totalPending > 0){
+          notifCount.textContent = totalPending;
+          notifWrap.style.display = 'flex';
+          if(pendingProducers > 0){
+            notifBtn.href = 'pengajuan-produsen.html';
+            notifBtn.title = `${pendingProducers} produsen baru menunggu persetujuan`;
+          } else {
+            notifBtn.href = 'produk.html';
+            notifBtn.title = `${pendingProducts} produk baru menunggu persetujuan`;
+          }
+        } else {
+          notifWrap.style.display = 'none';
+        }
+      }
+    } catch(e) {
+      console.error('[CihawukDashNav] updateAdminBadges error:', e);
+    }
+  }
+
   function renderShell({role, activeKey, name, avatarUrl, pageTitle}){
     const isAdmin = role === 'admin';
     document.body.classList.add(isAdmin ? 'role-admin' : 'role-produsen');
@@ -29,7 +84,11 @@
     if(!sidebarMount || !topbarMount) return;
 
     const items = menu.map(m =>
-      `<a href="${m.href}" class="admin-nav-link ${m.key===activeKey?'active':''}"><span class="nav-icon">${m.icon}</span><span class="nav-text">${m.label}</span></a>`
+      `<a href="${m.href}" class="admin-nav-link ${m.key===activeKey?'active':''}">
+        <span class="nav-icon">${m.icon}</span>
+        <span class="nav-text">${m.label}</span>
+        <span class="nav-badge" id="nav-badge-${m.key}" style="display:none;"></span>
+      </a>`
     ).join('');
 
     const avatarHtml = avatarUrl
@@ -66,6 +125,13 @@
         <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Buka menu">&#9776;</button>
         <div class="admin-topbar-title">${pageTitle || ''}</div>
         <div class="admin-topbar-actions">
+          ${isAdmin ? `
+          <div class="topbar-notif-wrap" id="topbar-notif-wrap" style="display:none;">
+            <a href="pengajuan-produsen.html" class="topbar-notif-btn" id="topbar-notif-btn" title="Notifikasi Menunggu Persetujuan">
+              <span class="notif-bell-icon">&#128276;</span>
+              <span class="notif-badge" id="topbar-notif-count">0</span>
+            </a>
+          </div>` : ''}
           <div class="topbar-user">
             <span class="topbar-user-avatar">${avatarHtml}</span>
             <div class="topbar-user-info"><strong>${name || ''}</strong><span>${isAdmin ? 'Administrator' : 'Produsen'}</span></div>
@@ -87,7 +153,11 @@
     openBtn.addEventListener('click', openSidebar);
     closeBtn.addEventListener('click', closeSidebar);
     overlay.addEventListener('click', closeSidebar);
+
+    if(isAdmin){
+      updateAdminBadges();
+    }
   }
 
-  window.CihawukDashNav = { renderShell };
+  window.CihawukDashNav = { renderShell, updateBadges: updateAdminBadges };
 })();

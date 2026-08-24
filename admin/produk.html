@@ -141,6 +141,9 @@
         rejectModal.style.display = 'grid';
       }));
       document.querySelectorAll('[data-detail]').forEach(btn=> btn.addEventListener('click', async ()=> await showDetail(btn.dataset.detail)));
+      if(window.CihawukDashNav && window.CihawukDashNav.updateBadges){
+        window.CihawukDashNav.updateBadges();
+      }
     }
 
     async function showDetail(id){

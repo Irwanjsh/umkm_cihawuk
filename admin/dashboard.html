@@ -17,6 +17,8 @@
       <main class="admin-content">
         <div class="admin-page-header"><div><h1>Dashboard Admin</h1><p>Ringkasan sistem Tani Cihawuk.</p></div></div>
 
+        <div id="admin-pending-banner"></div>
+
         <div class="admin-statistics" id="kpi-grid"></div>
 
         <div class="dashboard-grid">
@@ -79,10 +81,31 @@
     const producerMap = {};
     producers.forEach(p => { producerMap[p.id] = p; });
 
+    const pendingProducersCount = producers.filter(p=>p.status==='PENDING').length;
+    const pendingProductsCount = products.filter(p=>p.status==='PENDING').length;
+
+    const bannerMount = document.getElementById('admin-pending-banner');
+    if(pendingProducersCount > 0 || pendingProductsCount > 0){
+      const items = [];
+      if(pendingProducersCount > 0) items.push(`<strong>${pendingProducersCount}</strong> pengajuan produsen baru`);
+      if(pendingProductsCount > 0) items.push(`<strong>${pendingProductsCount}</strong> produk baru`);
+      bannerMount.innerHTML = `
+        <div class="alert alert-warning" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span class="alert-icon" style="font-size:1.4rem;">&#128276;</span>
+            <div><strong>Perhatian:</strong> Ada ${items.join(' dan ')} yang sedang menunggu persetujuan Anda.</div>
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            ${pendingProducersCount > 0 ? '<a href="pengajuan-produsen.html" class="btn btn-primary btn-sm">Tinjau Produsen &rarr;</a>' : ''}
+            ${pendingProductsCount > 0 ? '<a href="produk.html" class="btn btn-outline btn-sm">Tinjau Produk &rarr;</a>' : ''}
+          </div>
+        </div>`;
+    }
+
     document.getElementById('kpi-grid').innerHTML = `
       <div class="stat-card"><div class="stat-card-icon">&#128101;</div><div class="stat-card-content"><span>Total Produsen</span><strong>${producers.length}</strong></div></div>
       <div class="stat-card"><div class="stat-card-icon">&#9989;</div><div class="stat-card-content"><span>Produsen Aktif</span><strong>${producers.filter(p=>p.status==='ACTIVE').length}</strong></div></div>
-      <div class="stat-card"><div class="stat-card-icon">&#8987;</div><div class="stat-card-content"><span>Produsen Pending</span><strong>${producers.filter(p=>p.status==='PENDING').length}</strong></div></div>
+      <div class="stat-card"><div class="stat-card-icon">&#8987;</div><div class="stat-card-content"><span>Produsen Pending</span><strong>${pendingProducersCount}</strong></div></div>
       <div class="stat-card"><div class="stat-card-icon">&#128715;</div><div class="stat-card-content"><span>Total Produk</span><strong>${products.length}</strong></div></div>`;
 
     const badgeMap = {ACTIVE:'status-available',PENDING:'status-limited',REJECTED:'status-empty',SUSPENDED:'status-inactive'};

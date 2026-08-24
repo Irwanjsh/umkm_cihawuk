@@ -112,6 +112,9 @@
           rejectModal.style.display = 'grid';
         });
       });
+      if(window.CihawukDashNav && window.CihawukDashNav.updateBadges){
+        window.CihawukDashNav.updateBadges();
+      }
     }
 
     async function showDetail(id){
