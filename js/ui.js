@@ -124,12 +124,27 @@
         </div>
       </div>`;
   function initPasswordToggles(){
+    // Checkbox toggle: [x] Tampilkan kata sandi
+    document.querySelectorAll('.show-password-toggle').forEach(chk => {
+      if(chk.dataset.initialized) return;
+      chk.dataset.initialized = 'true';
+      chk.addEventListener('change', () => {
+        const formGroup = chk.closest('.form-group') || chk.closest('.form-row') || chk.parentElement;
+        if(!formGroup) return;
+        const input = formGroup.querySelector('input[type="password"], input[type="text"]');
+        if(input){
+          input.type = chk.checked ? 'text' : 'password';
+        }
+      });
+    });
+
+    // Button toggle (eye icon button)
     document.querySelectorAll('.password-toggle-btn').forEach(btn => {
       if(btn.dataset.initialized) return;
       btn.dataset.initialized = 'true';
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        const wrap = btn.closest('.password-input-wrap');
+        const wrap = btn.closest('.password-input-wrap') || btn.closest('.form-group');
         if(!wrap) return;
         const input = wrap.querySelector('input');
         if(!input) return;

@@ -1153,6 +1153,32 @@ PRODUCT DETAIL
   stroke: currentColor;
 }
 
+.show-password-check {
+  display: flex;
+  align-items: center;
+  margin-top: 0.45rem;
+}
+
+.show-password-check label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-bottom: 0;
+  user-select: none;
+}
+
+.show-password-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--primary);
+  margin: 0;
+}
+
 /* ============================================================
 SEARCH / FILTER
 ============================================================ */
