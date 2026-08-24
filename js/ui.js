@@ -72,6 +72,10 @@
         </a>
         <nav class="main-navigation" id="main-nav">
           <ul class="main-navigation-list">${navLinks}</ul>
+          <div class="mobile-nav-actions">
+            <a href="${basePrefix}daftar-produsen.html" class="btn btn-outline btn-block">Daftar Produsen</a>
+            <a href="${basePrefix}produsen/login.html" class="btn btn-primary btn-block">Login Produsen</a>
+          </div>
         </nav>
         <div class="navigation-actions">
           <a href="${basePrefix}daftar-produsen.html" class="btn btn-outline">Daftar Produsen</a>
