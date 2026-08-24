@@ -1110,6 +1110,49 @@ PRODUCT DETAIL
   font-size: 0.85rem;
 }
 
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-wrap input {
+  width: 100%;
+  padding-right: 44px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition), background-color var(--transition);
+  z-index: 2;
+}
+
+.password-toggle-btn:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.password-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
 /* ============================================================
 SEARCH / FILTER
 ============================================================ */

@@ -123,7 +123,37 @@
           <span>Dibuat untuk menghubungkan warga desa dengan pembeli.</span>
         </div>
       </div>`;
+  function initPasswordToggles(){
+    document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+      if(btn.dataset.initialized) return;
+      btn.dataset.initialized = 'true';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const wrap = btn.closest('.password-input-wrap');
+        if(!wrap) return;
+        const input = wrap.querySelector('input');
+        if(!input) return;
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        const eyeOpen = btn.querySelector('.eye-open');
+        const eyeClosed = btn.querySelector('.eye-closed');
+        if(eyeOpen && eyeClosed){
+          eyeOpen.style.display = isPassword ? 'none' : 'block';
+          eyeClosed.style.display = isPassword ? 'block' : 'none';
+        }
+        const label = isPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi';
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('title', label);
+      });
+    });
   }
 
-  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, toast, renderPublicNav, renderPublicFooter };
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initPasswordToggles);
+  } else {
+    initPasswordToggles();
+  }
+
+  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
 })();
