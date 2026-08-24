@@ -37,7 +37,10 @@
                 <label for="password">Kata Sandi</label>
                 <input type="password" id="password" required minlength="6" placeholder="Minimal 6 karakter">
                 <div class="show-password-check">
-                  <label><input type="checkbox" class="show-password-toggle"> Tampilkan kata sandi</label>
+                  <label for="show-password-daftar">
+                    <input type="checkbox" id="show-password-daftar" class="show-password-toggle" onchange="document.getElementById('password').type = this.checked ? 'text' : 'password'">
+                    <span>Tampilkan kata sandi</span>
+                  </label>
                 </div>
               </div>
             </div>

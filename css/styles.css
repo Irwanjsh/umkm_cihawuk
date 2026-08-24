@@ -1049,7 +1049,7 @@ PRODUCT DETAIL
   font-weight: 600;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group textarea,
 .form-group select,
 .data-search input,
@@ -1070,12 +1070,12 @@ PRODUCT DETAIL
   resize: vertical;
 }
 
-.form-group input::placeholder,
+.form-group input:not([type="checkbox"]):not([type="radio"])::placeholder,
 .form-group textarea::placeholder {
   color: var(--text-muted);
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-group textarea:focus,
 .form-group select:focus,
 .data-search input:focus,
@@ -1156,27 +1156,43 @@ PRODUCT DETAIL
 .show-password-check {
   display: flex;
   align-items: center;
-  margin-top: 0.45rem;
+  margin-top: 0.5rem;
+  width: 100%;
 }
 
 .show-password-check label {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.82rem;
+  gap: 0.5rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
-  margin-bottom: 0;
+  margin: 0;
+  padding: 0.2rem 0;
   user-select: none;
 }
 
 .show-password-check input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: var(--primary);
-  margin: 0;
+  appearance: checkbox !important;
+  -webkit-appearance: checkbox !important;
+  width: 17px !important;
+  height: 17px !important;
+  min-height: 17px !important;
+  max-width: 17px !important;
+  max-height: 17px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid var(--border-dark) !important;
+  border-radius: 3px !important;
+  background: #ffffff !important;
+  accent-color: var(--primary) !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+.show-password-check label span {
+  line-height: 1.2;
 }
 
 /* ============================================================
