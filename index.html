@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tani Cihawuk — Katalog UMKM Desa Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header id="site-header" class="site-header"></header>
+
+<main class="page-content">
+  <section class="hero">
+    <div class="container hero-content">
+      <div class="hero-text">
+        <span class="section-eyebrow">Katalog Digital Desa</span>
+        <h1 class="hero-title">Produk asli <span>Cihawuk</span></h1>
+        <p class="hero-description">Tani Cihawuk menghubungkan Anda langsung dengan warga atau pelaku usaha desa lewat WhatsApp, menciptakan transaksi yang transparan dan saling menguntungkan.</p>
+        <div class="hero-actions">
+          <a href="katalog.html" class="btn btn-primary">Lihat Katalog</a>
+          <a href="daftar-produsen.html" class="btn btn-outline">Daftar sebagai Produsen</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img id="hero-img" src="tani.png" alt="Produk Desa Cihawuk" style="border-radius: 16px; object-fit: cover;">
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header" style="display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div>
+          <span class="section-eyebrow">Pilihan Terbaru</span>
+          <h2 class="section-title">Produk Unggulan</h2>
+          <p class="section-description">Pilihan produk terbaru yang sudah diverifikasi admin desa.</p>
+        </div>
+        <a href="katalog.html" class="btn btn-outline">Lihat semua &rarr;</a>
+      </div>
+      <div class="product-grid" id="home-featured-products"></div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--surface-soft);">
+    <div class="container">
+      <div class="section-header center">
+        <span class="section-eyebrow">Kategori</span>
+        <h2 class="section-title">Jelajahi Produk Berdasarkan Kategori</h2>
+      </div>
+      <div class="filter-group" id="home-categories" style="justify-content:center;"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-eyebrow">Kenali Mereka</span>
+        <h2 class="section-title">Produsen Unggulan</h2>
+        <p class="section-description">Kenali pelaku usaha di balik produk yang Anda beli.</p>
+      </div>
+      <div class="farmer-grid" id="home-producers"></div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--surface-soft);">
+    <div class="container">
+      <div class="section-header center"><h2 class="section-title">Cihawuk dalam Angka</h2></div>
+      <div class="four-column" id="home-stats"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="card" style="text-align:center;background:var(--primary);border:none;padding:3rem 1.5rem;">
+        <h2 style="color:#fff;">Punya usaha di Desa Cihawuk?</h2>
+        <p style="color:rgba(255,255,255,.82);max-width:520px;margin:0 auto 1.5rem;">Daftarkan usaha Anda dan jangkau pembeli langsung lewat katalog digital desa — gratis dan mudah.</p>
+        <a href="daftar-produsen.html" class="btn btn-light">Daftar sebagai Produsen</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+(async function(){
+  CihawukUI.renderPublicNav('beranda', '');
+  CihawukUI.renderPublicFooter('');
+  const D = window.CihawukData, UI = window.CihawukUI;
+
+  const heroImg = document.getElementById('hero-img');
+  if(heroImg && (!heroImg.getAttribute('src') || heroImg.getAttribute('src') === '')){
+    heroImg.src = UI.phImg('TC', '#2f7d32', '#ffffff');
+  }
+
+  const featured = (await D.getApprovedProductsForCatalog()).slice(0,4);
+  document.getElementById('home-featured-products').innerHTML = featured.length ? featured.map(p => {
+    const availClass = p.ketersediaan==='Tersedia' ? 'status-available' : 'status-empty';
+    return `<a href="produk-detail.html?id=${p.id}" class="product-card">
+      <div class="product-card-image">
+        <img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}">
+        <span class="product-card-badge"><span class="status-badge ${availClass}">${p.ketersediaan}</span></span>
+      </div>
+      <div class="product-card-body">
+        <span class="product-category">${p.kategori}</span>
+        <h3 class="product-name">${p.nama}</h3>
+        <div class="product-meta"><span class="product-meta-item">oleh ${p.producerNamaUsaha}</span></div>
+        <div class="product-price">${UI.fmtRupiah(p.harga)}</div>
+      </div>
+    </a>`;
+  }).join('') : `<div class="empty-state"><div class="empty-state-icon">&#128715;</div><h3>Belum ada produk</h3><p>Belum ada produk yang disetujui admin.</p></div>`;
+
+  document.getElementById('home-categories').innerHTML = D.KATEGORI_USAHA.map(k =>
+    `<a href="katalog.html?kategori=${encodeURIComponent(k)}" class="filter-button">${k}</a>`
+  ).join('');
+
+  const producers = (await D.getActiveProducers()).slice(0,3);
+  document.getElementById('home-producers').innerHTML = producers.length ? producers.map(p => `
+    <a href="produsen.html?id=${p.id}" class="farmer-card">
+      <div class="farmer-avatar"><img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt="${p.namaUsaha}"></div>
+      <div class="farmer-info">
+        <h3 class="farmer-name">${p.namaUsaha}</h3>
+        <div class="farmer-location">${p.kategori}</div>
+        <div class="stamp-verified">&#10003; Produsen Terverifikasi</div>
+      </div>
+    </a>`).join('') : `<div class="empty-state"><div class="empty-state-icon">&#128101;</div><h3>Belum ada produsen aktif</h3></div>`;
+
+  const totalProdusen = (await D.getActiveProducers()).length;
+  const totalProduk = (await D.getApprovedProductsForCatalog()).length;
+  document.getElementById('home-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-card-icon">&#128101;</div><div class="stat-card-content"><span>Produsen Aktif</span><strong>${totalProdusen}</strong></div></div>
+    <div class="stat-card"><div class="stat-card-icon">&#128715;</div><div class="stat-card-content"><span>Produk Tersedia</span><strong>${totalProduk}</strong></div></div>
+    <div class="stat-card"><div class="stat-card-icon">&#127991;</div><div class="stat-card-content"><span>Kategori Usaha</span><strong>${D.KATEGORI_USAHA.length}</strong></div></div>
+    <div class="stat-card"><div class="stat-card-icon">&#127811;</div><div class="stat-card-content"><span>Desa</span><strong>1</strong></div></div>`;
+})();
+</script>
+</body>
+</html>

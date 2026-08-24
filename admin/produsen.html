@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelola Produsen — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="role-admin">
+<div class="admin-page">
+  <div class="admin-layout">
+    <div id="dash-sidebar-mount"></div>
+    <div class="admin-main">
+      <div id="dash-topbar-mount"></div>
+      <main class="admin-content">
+        <div class="admin-page-header"><div><h1>Kelola Produsen</h1><p>Semua produsen terdaftar di sistem.</p></div></div>
+
+        <div class="admin-card">
+          <div class="data-toolbar">
+            <div class="data-filter">
+              <select id="status-filter">
+                <option value="">Semua Status</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="PENDING">PENDING</option>
+                <option value="REJECTED">REJECTED</option>
+                <option value="SUSPENDED">SUSPENDED</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Usaha</th><th>Pemilik</th><th>Kategori</th><th>Status</th><th class="table-action-column">Aksi</th></tr></thead>
+              <tbody id="produsen-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+      <footer class="admin-footer"><p>Tani Cihawuk &copy; 2026 &mdash; Prototype KKN</p></footer>
+    </div>
+  </div>
+</div>
+
+<div class="admin-modal" id="edit-modal" style="display:none;">
+  <div class="admin-modal-overlay"></div>
+  <div class="admin-modal-content admin-modal-small">
+    <div class="admin-modal-header"><h2>Edit Data Produsen</h2><button type="button" class="modal-close" id="edit-close">&times;</button></div>
+    <form id="edit-form" class="admin-form">
+      <input type="hidden" id="edit-id">
+      <div class="form-group"><label for="edit-namaUsaha">Nama Usaha</label><input type="text" id="edit-namaUsaha" required></div>
+      <div class="form-group"><label for="edit-namaLengkap">Nama Pemilik</label><input type="text" id="edit-namaLengkap" required></div>
+      <div class="form-group"><label for="edit-whatsapp">WhatsApp</label><input type="text" id="edit-whatsapp" required></div>
+      <div class="form-group"><label for="edit-kategori">Kategori</label><select id="edit-kategori"></select></div>
+      <div class="admin-modal-actions">
+        <button type="button" class="btn btn-outline" id="edit-cancel">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/dash-nav.js"></script>
+<script>
+(async function(){
+  const session = await window.CihawukAuth.requireAdminAuth();
+  if(session){
+    window.CihawukDashNav.renderShell({role:'admin', activeKey:'produsen', name:session.nama, pageTitle:'Kelola Produsen'});
+    const D = window.CihawukData, UI = window.CihawukUI;
+    let filterStatus = '';
+    const badgeMap = {ACTIVE:'status-available',PENDING:'status-limited',REJECTED:'status-empty',SUSPENDED:'status-inactive'};
+
+    document.getElementById('status-filter').addEventListener('change', async (e)=>{ filterStatus = e.target.value; await render(); });
+
+    const katSelect = document.getElementById('edit-kategori');
+    katSelect.innerHTML = D.KATEGORI_USAHA.map(k=>`<option value="${k}">${k}</option>`).join('');
+
+    async function render(){
+      let list = await D.getProducers();
+      if(filterStatus) list = list.filter(p=>p.status===filterStatus);
+      list = list.sort((a,b)=>b.createdAt-a.createdAt);
+
+      document.getElementById('produsen-body').innerHTML = list.length ? list.map(p=>`
+        <tr>
+          <td><div class="table-person"><div class="table-person-avatar"><img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt=""></div><div><strong>${p.namaUsaha}</strong></div></div></td>
+          <td>${p.namaLengkap}</td>
+          <td>${p.kategori}</td>
+          <td><span class="status-badge ${badgeMap[p.status]}">${p.status}</span></td>
+          <td class="table-action-column">
+            <div class="table-actions">
+              <button class="table-action-button" data-edit="${p.id}" title="Edit">&#9998;</button>
+              ${p.status==='ACTIVE' ? `<button class="table-action-button delete-farmer" data-suspend="${p.id}" title="Nonaktifkan">&#9209;</button>` : ''}
+              ${p.status==='SUSPENDED' ? `<button class="table-action-button" data-activate="${p.id}" title="Aktifkan">&#9654;</button>` : ''}
+              <button class="table-action-button delete-farmer" data-delete="${p.id}" title="Hapus">&#128465;</button>
+            </div>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><h3>Tidak ada produsen</h3><p>Tidak ada produsen pada status ini.</p></div></td></tr>`;
+
+      document.querySelectorAll('[data-suspend]').forEach(btn=> btn.addEventListener('click', async ()=>{
+        btn.disabled = true;
+        await setStatus(btn.dataset.suspend,'SUSPENDED');
+      }));
+      document.querySelectorAll('[data-activate]').forEach(btn=> btn.addEventListener('click', async ()=>{
+        btn.disabled = true;
+        await setStatus(btn.dataset.activate,'ACTIVE');
+      }));
+      document.querySelectorAll('[data-delete]').forEach(btn=> btn.addEventListener('click', async ()=>{
+        if(confirm('Hapus akun produsen ini beserta seluruh produknya? Tindakan ini tidak dapat dibatalkan.')){
+          btn.disabled = true;
+          const res1 = await D.saveProducers((await D.getProducers()).filter(p=>p.id!==btn.dataset.delete));
+          if(res1 && !res1.ok){
+            UI.toast('Gagal menghapus produsen: ' + (res1.message || 'Terjadi kesalahan.'), 'danger');
+            btn.disabled = false;
+            return;
+          }
+          await D.saveProducts((await D.getProducts()).filter(p=>p.producerId!==btn.dataset.delete));
+          UI.toast('Produsen dihapus.', 'warning');
+          await render();
+        }
+      }));
+      document.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click', async ()=> await openEdit(btn.dataset.edit)));
+    }
+
+    async function setStatus(id, status){
+      const all = await D.getProducers();
+      const idx = all.findIndex(p=>p.id===id);
+      if(idx > -1){
+        all[idx].status = status;
+        const res = await D.saveProducers(all);
+        if(res && !res.ok){
+          UI.toast('Gagal mengubah status: ' + (res.message || 'Terjadi kesalahan.'), 'danger');
+          await render();
+          return;
+        }
+        UI.toast(status==='ACTIVE' ? 'Akun produsen diaktifkan kembali.' : 'Akun produsen dinonaktifkan.', status==='ACTIVE' ? 'success' : 'warning');
+        await render();
+      }
+    }
+
+    const modal = document.getElementById('edit-modal');
+    async function openEdit(id){
+      const p = await D.getProducerById(id);
+      document.getElementById('edit-id').value = p.id;
+      document.getElementById('edit-namaUsaha').value = p.namaUsaha;
+      document.getElementById('edit-namaLengkap').value = p.namaLengkap;
+      document.getElementById('edit-whatsapp').value = p.whatsapp;
+      document.getElementById('edit-kategori').value = p.kategori;
+      modal.style.display = 'grid';
+    }
+    function closeEdit(){ modal.style.display = 'none'; }
+    document.getElementById('edit-cancel').addEventListener('click', closeEdit);
+    document.getElementById('edit-close').addEventListener('click', closeEdit);
+    modal.querySelector('.admin-modal-overlay').addEventListener('click', closeEdit);
+
+    document.getElementById('edit-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const saveBtn = e.target.querySelector('button[type=submit]');
+      saveBtn.disabled = true;
+      const all = await D.getProducers();
+      const idx = all.findIndex(p=>p.id===document.getElementById('edit-id').value);
+      if(idx > -1){
+        all[idx] = Object.assign({}, all[idx], {
+          namaUsaha: document.getElementById('edit-namaUsaha').value.trim(),
+          namaLengkap: document.getElementById('edit-namaLengkap').value.trim(),
+          whatsapp: document.getElementById('edit-whatsapp').value.trim(),
+          kategori: document.getElementById('edit-kategori').value
+        });
+        const res = await D.saveProducers(all);
+        saveBtn.disabled = false;
+        if(res && !res.ok){
+          UI.toast('Gagal menyimpan perubahan: ' + (res.message || 'Terjadi kesalahan.'), 'danger');
+          return;
+        }
+        closeEdit();
+        UI.toast('Data produsen diperbarui.');
+        await render();
+      }
+    });
+
+    await render();
+  }
+})();
+</script>
+</body>
+</html>

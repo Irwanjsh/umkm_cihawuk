@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftar sebagai Produsen — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header id="site-header" class="site-header"></header>
+
+<main class="page-content">
+  <div class="page-header">
+    <div class="container page-header-content">
+      <span class="section-eyebrow">Pendaftaran</span>
+      <h1>Daftar sebagai Produsen</h1>
+      <p>Lengkapi data usaha Anda. Setelah dikirim, tim admin desa akan memverifikasi data sebelum akun Anda aktif.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container" style="max-width:720px;">
+      <div id="daftar-success" class="alert alert-success" style="display:none;margin-bottom:1.5rem;"></div>
+
+      <div class="card" id="daftar-card">
+        <div class="card-body">
+          <form id="daftar-form">
+            <div class="form-row">
+              <div class="form-group"><label for="namaLengkap">Nama Lengkap Pemilik</label><input type="text" id="namaLengkap" required placeholder="Contoh: Budi Santoso"></div>
+              <div class="form-group"><label for="namaUsaha">Nama Usaha</label><input type="text" id="namaUsaha" required placeholder="Contoh: Kebun Budi Cihawuk"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="email">Email</label><input type="email" id="email" required placeholder="nama@email.com"></div>
+              <div class="form-group"><label for="password">Kata Sandi</label><input type="password" id="password" required minlength="6" placeholder="Minimal 6 karakter"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="whatsapp">Nomor WhatsApp</label>
+                <input type="tel" id="whatsapp" required placeholder="6281234567890">
+                <span class="form-help">Gunakan format 62xxxxxxxxxx (tanpa tanda + atau spasi).</span>
+              </div>
+              <div class="form-group"><label for="kategori">Kategori Usaha</label><select id="kategori" required></select></div>
+            </div>
+            <div class="form-group"><label for="alamat">Alamat</label><input type="text" id="alamat" required placeholder="Kp. ..., Desa Cihawuk"></div>
+            <div class="form-group"><label for="deskripsi">Deskripsi Usaha</label><textarea id="deskripsi" required placeholder="Ceritakan singkat tentang usaha Anda..."></textarea></div>
+            <div class="form-group">
+              <label>Foto/Logo Usaha (Opsional)</label>
+              <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                <div class="farmer-avatar" style="width:72px;height:72px;flex-shrink:0;background:var(--border-dark);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;">
+                  <img id="foto-preview" src="" alt="Preview logo" style="display:none;width:100%;height:100%;object-fit:cover;">
+                  <span id="foto-placeholder-icon" style="font-size:1.5rem;color:var(--text-muted);">&#128247;</span>
+                </div>
+                <div style="flex:1;min-width:200px;">
+                  <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp">
+                  <p class="form-help" style="margin-top:0.4rem;">JPG, PNG, atau WEBP. Maksimal 3MB. Bersifat opsional.</p>
+                  <p id="foto-error" class="form-help" style="color:var(--danger,#c0392b);display:none;"></p>
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block">Kirim Pendaftaran</button>
+            </div>
+            <p style="text-align:center;font-size:0.85rem;">Sudah punya akun? <a href="produsen/login.html" class="forgot-password">Login Produsen</a></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+  CihawukUI.renderPublicNav('beranda','');
+  CihawukUI.renderPublicFooter('');
+  const D = window.CihawukData;
+
+  const katSelect = document.getElementById('kategori');
+  katSelect.innerHTML = '<option value="" disabled selected>Pilih kategori usaha</option>' +
+    D.KATEGORI_USAHA.map(k=>`<option value="${k}">${k}</option>`).join('');
+
+  let selectedFile = null;
+  const fotoPreview = document.getElementById('foto-preview');
+  const fotoPlaceholderIcon = document.getElementById('foto-placeholder-icon');
+  const fotoError = document.getElementById('foto-error');
+
+  document.getElementById('foto-input').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    fotoError.style.display = 'none';
+    if(!file){
+      selectedFile = null;
+      fotoPreview.src = '';
+      fotoPreview.style.display = 'none';
+      fotoPlaceholderIcon.style.display = 'block';
+      return;
+    }
+
+    const check = window.CihawukStorage.validateImageFile(file);
+    if(!check.valid){
+      fotoError.textContent = check.message;
+      fotoError.style.display = 'block';
+      e.target.value = '';
+      selectedFile = null;
+      fotoPreview.src = '';
+      fotoPreview.style.display = 'none';
+      fotoPlaceholderIcon.style.display = 'block';
+      return;
+    }
+    selectedFile = file;
+    fotoPreview.src = URL.createObjectURL(file);
+    fotoPreview.style.display = 'block';
+    fotoPlaceholderIcon.style.display = 'none';
+  });
+
+  document.getElementById('daftar-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Mengirim pendaftaran...';
+
+    const data = {
+      namaLengkap: document.getElementById('namaLengkap').value.trim(),
+      namaUsaha: document.getElementById('namaUsaha').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+      whatsapp: document.getElementById('whatsapp').value.trim(),
+      kategori: document.getElementById('kategori').value,
+      alamat: document.getElementById('alamat').value.trim(),
+      deskripsi: document.getElementById('deskripsi').value.trim(),
+      fotoFile: selectedFile
+    };
+    const result = await window.CihawukAuth.registerProducer(data);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Kirim Pendaftaran';
+
+    if(!result.ok){ alert(result.message); return; }
+
+    document.getElementById('daftar-card').style.display = 'none';
+    const box = document.getElementById('daftar-success');
+    box.style.display = 'flex';
+    box.innerHTML = `<span class="alert-icon">&#10003;</span><div><strong>Registrasi berhasil.</strong><br>Data usaha Anda telah diterima dan sedang menunggu verifikasi admin. Anda akan dapat login setelah akun disetujui.<br><br><a href="produsen/login.html" class="btn btn-outline">Ke Halaman Login</a></div>`;
+  });
+</script>
+</body>
+</html>

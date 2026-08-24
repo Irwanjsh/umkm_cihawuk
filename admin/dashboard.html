@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Admin — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="role-admin">
+<div class="admin-page">
+  <div class="admin-layout">
+    <div id="dash-sidebar-mount"></div>
+    <div class="admin-main">
+      <div id="dash-topbar-mount"></div>
+      <main class="admin-content">
+        <div class="admin-page-header"><div><h1>Dashboard Admin</h1><p>Ringkasan sistem Tani Cihawuk.</p></div></div>
+
+        <div class="admin-statistics" id="kpi-grid"></div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-main">
+            <div class="admin-card">
+              <div class="dashboard-card-header"><h2>Pengajuan Produsen Terbaru</h2><a href="pengajuan-produsen.html">Lihat semua &rarr;</a></div>
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead><tr><th>Usaha</th><th>Kategori</th><th>Tanggal</th><th>Status</th></tr></thead>
+                  <tbody id="pengajuan-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="dashboard-side">
+            <div class="admin-card">
+              <div class="dashboard-card-header"><h2>Aksi Cepat</h2></div>
+              <div class="dashboard-card-body">
+                <div class="quick-actions">
+                  <a href="pengajuan-produsen.html" class="quick-action"><span class="quick-action-icon">&#128203;</span><span>Verifikasi Produsen</span></a>
+                  <a href="produk.html" class="quick-action"><span class="quick-action-icon">&#128715;</span><span>Kelola Produk</span></a>
+                  <a href="produsen.html" class="quick-action"><span class="quick-action-icon">&#128101;</span><span>Kelola Produsen</span></a>
+                  <a href="../katalog.html" class="quick-action"><span class="quick-action-icon">&#128269;</span><span>Lihat Katalog</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="dashboard-card-header"><h2>Produk Menunggu Persetujuan</h2><a href="produk.html">Lihat semua &rarr;</a></div>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Produk</th><th>Produsen</th><th>Kategori</th><th>Status</th></tr></thead>
+              <tbody id="produk-pending-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+      <footer class="admin-footer"><p>Tani Cihawuk &copy; 2026 &mdash; Prototype KKN</p></footer>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/dash-nav.js"></script>
+<script>
+(async function(){
+  const session = await window.CihawukAuth.requireAdminAuth();
+  if(session){
+    window.CihawukDashNav.renderShell({role:'admin', activeKey:'dashboard', name:session.nama, pageTitle:'Dashboard Admin'});
+    const D = window.CihawukData, UI = window.CihawukUI;
+
+    const producers = await D.getProducers();
+    const products = await D.getProducts();
+    const producerMap = {};
+    producers.forEach(p => { producerMap[p.id] = p; });
+
+    document.getElementById('kpi-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-card-icon">&#128101;</div><div class="stat-card-content"><span>Total Produsen</span><strong>${producers.length}</strong></div></div>
+      <div class="stat-card"><div class="stat-card-icon">&#9989;</div><div class="stat-card-content"><span>Produsen Aktif</span><strong>${producers.filter(p=>p.status==='ACTIVE').length}</strong></div></div>
+      <div class="stat-card"><div class="stat-card-icon">&#8987;</div><div class="stat-card-content"><span>Produsen Pending</span><strong>${producers.filter(p=>p.status==='PENDING').length}</strong></div></div>
+      <div class="stat-card"><div class="stat-card-icon">&#128715;</div><div class="stat-card-content"><span>Total Produk</span><strong>${products.length}</strong></div></div>`;
+
+    const badgeMap = {ACTIVE:'status-available',PENDING:'status-limited',REJECTED:'status-empty',SUSPENDED:'status-inactive'};
+    const pendingProducers = producers.filter(p=>p.status==='PENDING').sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+    document.getElementById('pengajuan-body').innerHTML = pendingProducers.length ? pendingProducers.map(p=>`
+      <tr>
+        <td><div class="table-person"><div class="table-person-avatar"><img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt=""></div><div><strong>${p.namaUsaha}</strong></div></div></td>
+        <td>${p.kategori}</td><td>${new Date(p.createdAt).toLocaleDateString('id-ID')}</td>
+        <td><span class="status-badge status-limited">PENDING</span></td>
+      </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><h3>Tidak ada pengajuan baru</h3></div></td></tr>`;
+
+    const badgeMapProduk = {APPROVED:'status-available',PENDING:'status-limited',REJECTED:'status-empty'};
+    const pendingProducts = products.filter(p=>p.status==='PENDING').sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
+    document.getElementById('produk-pending-body').innerHTML = pendingProducts.length ? pendingProducts.map(p=>{
+      const prod = producerMap[p.producerId];
+      return `<tr>
+        <td><div class="table-product"><div class="table-product-image"><img src="${UI.productImg(p.nama, p.foto)}" alt=""></div><div><strong>${p.nama}</strong></div></div></td>
+        <td>${prod?prod.namaUsaha:'-'}</td><td>${p.kategori}</td>
+        <td><span class="status-badge status-limited">PENDING</span></td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="4"><div class="empty-state"><h3>Tidak ada produk menunggu persetujuan</h3></div></td></tr>`;
+  }
+})();
+</script>
+</body>
+</html>

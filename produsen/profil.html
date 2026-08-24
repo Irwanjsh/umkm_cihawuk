@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil Usaha — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="role-produsen">
+<div class="admin-page">
+  <div class="admin-layout">
+    <div id="dash-sidebar-mount"></div>
+    <div class="admin-main">
+      <div id="dash-topbar-mount"></div>
+      <main class="admin-content">
+        <div class="admin-page-header"><div><h1>Profil Usaha</h1><p>Data ini tampil di halaman publik profil produsen Anda.</p></div></div>
+
+        <div class="admin-card" style="max-width:680px;">
+          <div class="admin-form">
+            <form id="profil-form" class="admin-form-grid">
+              <div class="form-group"><label for="namaLengkap">Nama Pemilik</label><input type="text" id="namaLengkap" required></div>
+              <div class="form-group"><label for="namaUsaha">Nama Usaha</label><input type="text" id="namaUsaha" required></div>
+              <div class="form-group"><label for="whatsapp">Nomor WhatsApp</label><input type="tel" id="whatsapp" required></div>
+              <div class="form-group"><label for="kategori">Kategori</label><select id="kategori" required></select></div>
+              <div class="form-group full-width"><label for="alamat">Alamat</label><input type="text" id="alamat" required></div>
+              <div class="form-group full-width"><label for="deskripsi">Deskripsi Usaha</label><textarea id="deskripsi" required></textarea></div>
+              <div class="form-group full-width">
+                <label>Foto/Logo Usaha</label>
+                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                  <div class="farmer-avatar" style="width:88px;height:88px;flex-shrink:0;">
+                    <img id="foto-preview" src="" alt="Foto usaha" style="display:none;">
+                  </div>
+                  <div style="flex:1;min-width:200px;">
+                    <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp">
+                    <p class="form-help" style="margin-top:0.4rem;">JPG, PNG, atau WEBP. Maksimal 3MB.</p>
+                    <p id="foto-error" class="form-help" style="color:var(--danger,#c0392b);display:none;"></p>
+                  </div>
+                </div>
+              </div>
+              <div class="form-actions full-width"><button type="submit" class="btn btn-primary">Simpan Perubahan</button></div>
+            </form>
+          </div>
+        </div>
+      </main>
+      <footer class="admin-footer"><p>&copy;Tani Cihawuk &mdash; Proker KKN UMB kel_Cihawuk1_2026</p></footer>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/dash-nav.js"></script>
+<script>
+(async function(){
+  const producer = await window.CihawukAuth.requireProducerAuth();
+  if(producer){
+    window.CihawukDashNav.renderShell({role:'produsen', activeKey:'profil', name:producer.nama_usaha, avatarUrl:producer.foto_path, pageTitle:'Profil Usaha'});
+    const D = window.CihawukData, UI = window.CihawukUI;
+
+    const katSelect = document.getElementById('kategori');
+    katSelect.innerHTML = D.KATEGORI_USAHA.map(k=>`<option value="${k}" ${k===producer.kategori?'selected':''}>${k}</option>`).join('');
+
+    document.getElementById('namaLengkap').value = producer.nama_lengkap;
+    document.getElementById('namaUsaha').value = producer.nama_usaha;
+    document.getElementById('whatsapp').value = producer.whatsapp;
+    document.getElementById('alamat').value = producer.alamat;
+    document.getElementById('deskripsi').value = producer.deskripsi;
+
+    let currentFotoUrl = producer.foto_path || '';
+    let selectedFile = null;
+    const fotoPreview = document.getElementById('foto-preview');
+    const fotoError = document.getElementById('foto-error');
+
+    if(currentFotoUrl){
+      fotoPreview.src = currentFotoUrl;
+      fotoPreview.style.display = 'block';
+    }
+
+    document.getElementById('foto-input').addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      fotoError.style.display = 'none';
+      if(!file) return;
+
+      const check = window.CihawukStorage.validateImageFile(file);
+      if(!check.valid){
+        fotoError.textContent = check.message;
+        fotoError.style.display = 'block';
+        e.target.value = '';
+        selectedFile = null;
+        return;
+      }
+      selectedFile = file;
+      fotoPreview.src = URL.createObjectURL(file);
+      fotoPreview.style.display = 'block';
+    });
+
+    document.getElementById('profil-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      submitBtn.disabled = true;
+      fotoError.style.display = 'none';
+
+      let newFotoUrl = currentFotoUrl;
+      if(selectedFile){
+        const result = currentFotoUrl
+          ? await window.CihawukStorage.replaceProducerPhoto(selectedFile, currentFotoUrl)
+          : await window.CihawukStorage.uploadProducerPhoto(selectedFile);
+        if(!result.ok){
+          fotoError.textContent = result.message || 'Gagal mengunggah foto.';
+          fotoError.style.display = 'block';
+          UI.toast('Gagal menyimpan: ' + (result.message || 'unggah foto gagal.'), 'danger');
+          submitBtn.disabled = false;
+          return;
+        }
+        newFotoUrl = result.url;
+      }
+
+      const namaUsahaVal = document.getElementById('namaUsaha').value.trim();
+      const namaLengkapVal = document.getElementById('namaLengkap').value.trim();
+      const whatsappVal = document.getElementById('whatsapp').value.trim();
+      const kategoriVal = document.getElementById('kategori').value;
+      const alamatVal = document.getElementById('alamat').value.trim();
+      const deskripsiVal = document.getElementById('deskripsi').value.trim();
+
+      const producers = await D.getProducers();
+      const idx = producers.findIndex(p=>p.id===producer.id);
+      if(idx > -1){
+        producers[idx] = Object.assign({}, producers[idx], {
+          namaLengkap: namaLengkapVal,
+          namaUsaha: namaUsahaVal,
+          whatsapp: whatsappVal,
+          kategori: kategoriVal,
+          alamat: alamatVal,
+          deskripsi: deskripsiVal,
+          foto: newFotoUrl
+        });
+        const res = await D.saveProducers(producers);
+        submitBtn.disabled = false;
+        if(res && !res.ok){
+          UI.toast('Gagal menyimpan: ' + (res.message || 'Terjadi kesalahan.'), 'danger');
+          return;
+        }
+        currentFotoUrl = newFotoUrl;
+        selectedFile = null;
+
+        // Sinkronisasi avatar & nama di topbar / sidebar langsung
+        if(newFotoUrl){
+          fotoPreview.src = newFotoUrl;
+          fotoPreview.style.display = 'block';
+          document.querySelectorAll('.admin-user-avatar, .topbar-user-avatar').forEach(av => {
+            av.innerHTML = `<img src="${newFotoUrl}" alt="${namaUsahaVal}">`;
+          });
+        }
+        document.querySelectorAll('.admin-user-info strong, .topbar-user-info strong').forEach(el => {
+          el.textContent = namaUsahaVal;
+        });
+
+        UI.toast('Profil usaha berhasil diperbarui.');
+      } else {
+        submitBtn.disabled = false;
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

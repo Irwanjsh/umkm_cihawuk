@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengajuan Produsen — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="role-admin">
+<div class="admin-page">
+  <div class="admin-layout">
+    <div id="dash-sidebar-mount"></div>
+    <div class="admin-main">
+      <div id="dash-topbar-mount"></div>
+      <main class="admin-content">
+        <div class="admin-page-header"><div><h1>Pengajuan Produsen</h1><p>Tinjau calon produsen dengan status PENDING.</p></div></div>
+
+        <div class="admin-card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Usaha</th><th>Pemilik</th><th>Kategori</th><th>Alamat</th><th>Tanggal</th><th class="table-action-column">Aksi</th></tr></thead>
+              <tbody id="pengajuan-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+      <footer class="admin-footer"><p>Tani Cihawuk &copy; 2026 &mdash; Prototype KKN</p></footer>
+    </div>
+  </div>
+</div>
+
+<div class="admin-modal" id="detail-modal" style="display:none;">
+  <div class="admin-modal-overlay"></div>
+  <div class="admin-modal-content admin-modal-small" id="detail-box"></div>
+</div>
+
+<div class="admin-modal" id="reject-modal" style="display:none;">
+  <div class="admin-modal-overlay"></div>
+  <div class="admin-modal-content admin-modal-small">
+    <div class="admin-modal-header"><h2>Tolak Pendaftaran</h2><button type="button" class="modal-close" id="reject-close">&times;</button></div>
+    <div class="admin-form">
+      <div class="form-group"><label for="reject-reason">Alasan penolakan</label><textarea id="reject-reason" placeholder="Contoh: Data usaha belum lengkap"></textarea></div>
+      <div class="admin-modal-actions">
+        <button class="btn btn-outline" id="reject-cancel">Batal</button>
+        <button class="btn btn-danger" id="reject-confirm">Tolak Pendaftaran</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/dash-nav.js"></script>
+<script>
+(async function(){
+  const session = await window.CihawukAuth.requireAdminAuth();
+  if(session){
+    window.CihawukDashNav.renderShell({role:'admin', activeKey:'pengajuan', name:session.nama, pageTitle:'Pengajuan Produsen'});
+    const D = window.CihawukData, UI = window.CihawukUI;
+    let rejectTargetId = null;
+
+    const detailModal = document.getElementById('detail-modal');
+    const rejectModal = document.getElementById('reject-modal');
+
+    async function render(){
+      const pending = (await D.getProducers()).filter(p=>p.status==='PENDING').sort((a,b)=>b.createdAt-a.createdAt);
+      document.getElementById('pengajuan-body').innerHTML = pending.length ? pending.map(p=>`
+        <tr>
+          <td><div class="table-person"><div class="table-person-avatar"><img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt=""></div><div><strong>${p.namaUsaha}</strong></div></div></td>
+          <td>${p.namaLengkap}</td>
+          <td>${p.kategori}</td>
+          <td>${p.alamat}</td>
+          <td>${new Date(p.createdAt).toLocaleDateString('id-ID')}</td>
+          <td class="table-action-column">
+            <div class="table-actions">
+              <button class="table-action-button" data-detail="${p.id}" title="Detail">&#128065;</button>
+              <button class="table-action-button" data-approve="${p.id}" title="Setujui">&#10003;</button>
+              <button class="table-action-button delete-farmer" data-reject="${p.id}" title="Tolak">&#10005;</button>
+            </div>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">&#10003;</div><h3>Tidak ada pengajuan</h3><p>Tidak ada pengajuan yang menunggu saat ini.</p></div></td></tr>`;
+
+      document.querySelectorAll('[data-approve]').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          btn.disabled = true;
+          const all = await D.getProducers();
+          const idx = all.findIndex(p=>p.id===btn.dataset.approve);
+          if(idx > -1){
+            all[idx].status = 'ACTIVE';
+            all[idx].alasanTolak = '';
+            const res = await D.saveProducers(all);
+            if(res && !res.ok){
+              UI.toast('Gagal menyetujui produsen: ' + (res.message || 'Terjadi kesalahan.'), 'danger');
+              btn.disabled = false;
+              return;
+            }
+            UI.toast('Produsen disetujui dan kini aktif.');
+            await render();
+          }
+        });
+      });
+      document.querySelectorAll('[data-detail]').forEach(btn=> btn.addEventListener('click', async ()=> await showDetail(btn.dataset.detail)));
+      document.querySelectorAll('[data-reject]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          rejectTargetId = btn.dataset.reject;
+          document.getElementById('reject-reason').value = '';
+          rejectModal.style.display = 'grid';
+        });
+      });
+    }
+
+    async function showDetail(id){
+      const p = await D.getProducerById(id);
+      document.getElementById('detail-box').innerHTML = `
+        <div class="admin-modal-header"><h2>${p.namaUsaha}</h2><button type="button" class="modal-close" id="detail-close">&times;</button></div>
+        <div class="admin-form">
+          <div class="product-detail-info">
+            <div class="product-info-row"><span class="product-info-label">Pemilik</span><span class="product-info-value">${p.namaLengkap}</span></div>
+            <div class="product-info-row"><span class="product-info-label">Email</span><span class="product-info-value">${p.email}</span></div>
+            <div class="product-info-row"><span class="product-info-label">WhatsApp</span><span class="product-info-value">${p.whatsapp}</span></div>
+            <div class="product-info-row"><span class="product-info-label">Kategori</span><span class="product-info-value">${p.kategori}</span></div>
+            <div class="product-info-row"><span class="product-info-label">Alamat</span><span class="product-info-value">${p.alamat}</span></div>
+          </div>
+          <p style="margin-top:1rem;">${p.deskripsi}</p>
+          <div class="admin-modal-actions"><button class="btn btn-outline" id="detail-close-2">Tutup</button></div>
+        </div>`;
+      detailModal.style.display = 'grid';
+      const close = ()=> detailModal.style.display = 'none';
+      document.getElementById('detail-close').addEventListener('click', close);
+      document.getElementById('detail-close-2').addEventListener('click', close);
+    }
+    detailModal.querySelector('.admin-modal-overlay').addEventListener('click', ()=> detailModal.style.display='none');
+
+    document.getElementById('reject-cancel').addEventListener('click', ()=> rejectModal.style.display='none');
+    document.getElementById('reject-close').addEventListener('click', ()=> rejectModal.style.display='none');
+    rejectModal.querySelector('.admin-modal-overlay').addEventListener('click', ()=> rejectModal.style.display='none');
+    document.getElementById('reject-confirm').addEventListener('click', async ()=>{
+      const confirmBtn = document.getElementById('reject-confirm');
+      confirmBtn.disabled = true;
+      const all = await D.getProducers();
+      const idx = all.findIndex(p=>p.id===rejectTargetId);
+      if(idx > -1){
+        all[idx].status = 'REJECTED';
+        all[idx].alasanTolak = document.getElementById('reject-reason').value.trim();
+        const res = await D.saveProducers(all);
+        confirmBtn.disabled = false;
+        if(res && !res.ok){
+          UI.toast('Gagal menolak pendaftaran: ' + (res.message || 'Terjadi kesalahan.'), 'danger');
+          return;
+        }
+        rejectModal.style.display = 'none';
+        UI.toast('Pendaftaran produsen ditolak.', 'warning');
+        await render();
+      }
+    });
+
+    await render();
+  }
+})();
+</script>
+</body>
+</html>

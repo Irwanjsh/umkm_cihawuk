@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Produsen — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="role-produsen">
+<div class="admin-login-page">
+  <div class="admin-login-wrapper">
+    <div class="admin-login-brand">
+      <div class="admin-login-brand-icon">&#127811;</div>
+      <strong>Tani Cihawuk</strong>
+      <span>Panel Produsen</span>
+    </div>
+    <div class="admin-login-card">
+      <div class="admin-login-header">
+        <h1>Login Produsen</h1>
+        <p>Masuk untuk mengelola profil usaha dan produk Anda.</p>
+      </div>
+
+      <div id="login-status"></div>
+
+      <form id="login-form" class="admin-login-form">
+        <div class="form-group"><label for="email">Email</label><input type="email" id="email" required placeholder="nama@email.com"></div>
+        <div class="form-group">
+          <label for="password">Kata Sandi</label>
+          <div class="password-field">
+            <input type="password" id="password" required placeholder="Kata sandi Anda">
+          </div>
+        </div>
+        <div class="login-options">
+          <span></span>
+          <a href="#" id="lupa-password-link" class="forgot-password">Lupa password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
+      </form>
+
+      <div class="admin-login-footer">
+        Belum punya akun? <a href="../daftar-produsen.html" class="forgot-password">Daftar sebagai Produsen</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/ui.js"></script>
+<script>
+(async function(){
+  const existing = await window.CihawukAuth.getSession();
+  if(existing && existing.role === 'produsen' && existing.status === 'ACTIVE'){
+    window.location.href = 'dashboard.html';
+  }
+
+  const statusBox = document.getElementById('login-status');
+
+  document.getElementById('login-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const result = await window.CihawukAuth.loginProducer(email, password);
+
+    statusBox.innerHTML = '';
+    if(!result.ok){
+      statusBox.innerHTML = `<div class="alert alert-danger" style="margin-bottom:1rem;">${result.message}</div>`;
+      return;
+    }
+    if(result.blocked){
+      const p = result.producer;
+      if(p.status === 'PENDING'){
+        statusBox.innerHTML = `<div class="alert alert-warning" style="margin-bottom:1rem;">Akun Anda masih menunggu verifikasi admin.</div>`;
+      } else if(p.status === 'REJECTED'){
+        statusBox.innerHTML = `<div class="alert alert-danger" style="margin-bottom:1rem;">Pendaftaran Anda ditolak.${p.alasan_tolak ? ' Alasan: ' + p.alasan_tolak : ''}</div>`;
+      } else if(p.status === 'SUSPENDED'){
+        statusBox.innerHTML = `<div class="alert alert-danger" style="margin-bottom:1rem;">Akun Anda sedang dinonaktifkan oleh admin. Hubungi pengelola desa untuk informasi lebih lanjut.</div>`;
+      }
+      return;
+    }
+    window.location.href = 'dashboard.html';
+  });
+
+  document.getElementById('lupa-password-link').addEventListener('click', (e)=>{
+    e.preventDefault();
+    alert('Fitur reset password belum tersedia di prototype ini. Hubungi admin desa untuk bantuan.');
+  });
+})();
+</script>
+</body>
+</html>

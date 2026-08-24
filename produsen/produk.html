@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produk Saya — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="role-produsen">
+<div class="admin-page">
+  <div class="admin-layout">
+    <div id="dash-sidebar-mount"></div>
+    <div class="admin-main">
+      <div id="dash-topbar-mount"></div>
+      <main class="admin-content">
+        <div class="admin-page-header">
+          <div><h1>Produk Saya</h1><p>Kelola produk yang Anda tawarkan di katalog.</p></div>
+          <div class="page-header-actions"><a href="tambah-produk.html" class="btn btn-primary">+ Tambah Produk</a></div>
+        </div>
+
+        <div class="admin-card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Ketersediaan</th><th>Status</th><th class="table-action-column">Aksi</th></tr></thead>
+              <tbody id="produk-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+      <footer class="admin-footer"><p>&copy;Tani Cihawuk &mdash; Proker KKN UMB kel_Cihawuk1_2026</p></footer>
+    </div>
+  </div>
+</div>
+
+<div class="admin-modal" id="edit-modal" style="display:none;">
+  <div class="admin-modal-overlay"></div>
+  <div class="admin-modal-content">
+    <div class="admin-modal-header"><h2>Edit Produk</h2><button type="button" class="modal-close" id="edit-close">&times;</button></div>
+    <form id="edit-form" class="admin-form">
+      <input type="hidden" id="edit-id">
+      <div class="form-group"><label for="edit-nama">Nama Produk</label><input type="text" id="edit-nama" required></div>
+      <div class="form-group">
+        <label>Foto Produk</label>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <div style="width:72px;height:72px;flex-shrink:0;border-radius:var(--radius-sm);overflow:hidden;background:var(--border-dark);display:flex;align-items:center;justify-content:center;">
+            <img id="edit-foto-preview" src="" alt="Foto produk" style="display:none;width:100%;height:100%;object-fit:cover;">
+          </div>
+          <div style="flex:1;min-width:180px;">
+            <input type="file" id="edit-foto-input" accept="image/jpeg,image/png,image/webp">
+            <p class="form-help" style="margin-top:0.4rem;">Kosongkan jika tidak ingin mengganti foto.</p>
+            <p id="edit-foto-error" class="form-help" style="color:var(--danger,#c0392b);display:none;"></p>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label for="edit-harga">Harga (Rp)</label><input type="number" id="edit-harga" required min="0"></div>
+        <div class="form-group"><label for="edit-ketersediaan">Ketersediaan</label><select id="edit-ketersediaan"><option>Tersedia</option><option>Habis</option></select></div>
+      </div>
+      <div class="form-group"><label for="edit-kategori">Kategori</label><select id="edit-kategori"></select></div>
+      <div class="form-group"><label for="edit-deskripsi">Deskripsi</label><textarea id="edit-deskripsi" required></textarea></div>
+      <p class="form-help">Mengubah data produk akan mengirim ulang produk untuk persetujuan admin.</p>
+      <div class="admin-modal-actions">
+        <button type="button" class="btn btn-outline" id="edit-cancel">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/dash-nav.js"></script>
+<script>
+(async function(){
+  const producer = await window.CihawukAuth.requireProducerAuth();
+  if(producer){
+    window.CihawukDashNav.renderShell({role:'produsen', activeKey:'produk', name:producer.nama_usaha, avatarUrl:producer.foto_path, pageTitle:'Produk Saya'});
+    const D = window.CihawukData, UI = window.CihawukUI;
+    const badgeMap = {APPROVED:'status-available',PENDING:'status-limited',REJECTED:'status-empty'};
+
+    async function render(){
+      const products = (await D.getProductsByProducer(producer.id)).sort((a,b)=>b.createdAt-a.createdAt);
+      document.getElementById('produk-body').innerHTML = products.length ? products.map(p=>`
+        <tr>
+          <td><div class="table-product"><div class="table-product-image"><img src="${UI.productImg(p.nama, p.foto)}" alt=""></div><div><strong>${p.nama}</strong></div></div></td>
+          <td>${p.kategori}</td>
+          <td>${UI.fmtRupiah(p.harga)}</td>
+          <td>${p.ketersediaan}</td>
+          <td><span class="status-badge ${badgeMap[p.status]}">${p.status}</span>
+              ${p.status==='REJECTED' && p.alasanTolak ? `<div class="form-help">${p.alasanTolak}</div>` : ''}</td>
+          <td class="table-action-column">
+            <div class="table-actions">
+              <button class="table-action-button" data-edit="${p.id}" title="Edit">&#9998;</button>
+              <button class="table-action-button delete-product" data-del="${p.id}" title="Hapus">&#128465;</button>
+            </div>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><h3>Belum ada produk</h3><p><a href="tambah-produk.html">Tambah produk sekarang</a>.</p></div></td></tr>`;
+
+      document.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          if(confirm('Hapus produk ini?')){
+            btn.disabled = true;
+            const res = await D.saveProducts((await D.getProducts()).filter(p=>p.id !== btn.dataset.del));
+            if(res && !res.ok){
+              UI.toast('Gagal menghapus produk: ' + (res.message || 'Terjadi kesalahan.'), 'danger');
+              btn.disabled = false;
+              return;
+            }
+            UI.toast('Produk dihapus.');
+            await render();
+          }
+        });
+      });
+      document.querySelectorAll('[data-edit]').forEach(btn=>{
+        btn.addEventListener('click', async ()=> await openEdit(btn.dataset.edit));
+      });
+    }
+
+    const katSelect = document.getElementById('edit-kategori');
+    katSelect.innerHTML = D.KATEGORI_USAHA.map(k=>`<option value="${k}">${k}</option>`).join('');
+
+    let editingOldFoto = '';
+    let selectedFile = null;
+    const fotoPreview = document.getElementById('edit-foto-preview');
+    const fotoError = document.getElementById('edit-foto-error');
+
+    document.getElementById('edit-foto-input').addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      fotoError.style.display = 'none';
+      if(!file) return;
+
+      const check = window.CihawukStorage.validateImageFile(file);
+      if(!check.valid){
+        fotoError.textContent = check.message;
+        fotoError.style.display = 'block';
+        e.target.value = '';
+        selectedFile = null;
+        return;
+      }
+      selectedFile = file;
+      fotoPreview.src = URL.createObjectURL(file);
+      fotoPreview.style.display = 'block';
+    });
+
+    const modal = document.getElementById('edit-modal');
+    async function openEdit(id){
+      const p = await D.getProductById(id);
+      document.getElementById('edit-id').value = p.id;
+      document.getElementById('edit-nama').value = p.nama;
+      document.getElementById('edit-harga').value = p.harga;
+      document.getElementById('edit-ketersediaan').value = p.ketersediaan;
+      document.getElementById('edit-kategori').value = p.kategori;
+      document.getElementById('edit-deskripsi').value = p.deskripsi;
+
+      editingOldFoto = p.foto || '';
+      selectedFile = null;
+      fotoError.style.display = 'none';
+      document.getElementById('edit-foto-input').value = '';
+      if(editingOldFoto){
+        fotoPreview.src = editingOldFoto;
+        fotoPreview.style.display = 'block';
+      } else {
+        fotoPreview.src = '';
+        fotoPreview.style.display = 'none';
+      }
+      modal.style.display = 'grid';
+    }
+    function closeEdit(){ modal.style.display = 'none'; }
+    document.getElementById('edit-cancel').addEventListener('click', closeEdit);
+    document.getElementById('edit-close').addEventListener('click', closeEdit);
+    modal.querySelector('.admin-modal-overlay').addEventListener('click', closeEdit);
+
+    document.getElementById('edit-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      fotoError.style.display = 'none';
+      const id = document.getElementById('edit-id').value;
+
+      let newFotoUrl = null;
+      if(selectedFile){
+        const result = editingOldFoto
+          ? await window.CihawukStorage.replaceProductPhoto(selectedFile, id, editingOldFoto)
+          : await window.CihawukStorage.uploadProductPhoto(selectedFile, id);
+        if(!result.ok){
+          fotoError.textContent = result.message || 'Gagal mengunggah foto.';
+          fotoError.style.display = 'block';
+          UI.toast('Gagal menyimpan: ' + (result.message || 'unggah foto gagal.'), 'danger');
+          return;
+        }
+        newFotoUrl = result.url;
+      }
+
+      const all = await D.getProducts();
+      const idx = all.findIndex(p=>p.id===id);
+      if(idx > -1){
+        const updated = Object.assign({}, all[idx], {
+          nama: document.getElementById('edit-nama').value.trim(),
+          harga: Number(document.getElementById('edit-harga').value),
+          ketersediaan: document.getElementById('edit-ketersediaan').value,
+          kategori: document.getElementById('edit-kategori').value,
+          deskripsi: document.getElementById('edit-deskripsi').value.trim(),
+          status: 'PENDING',
+          alasanTolak: ''
+        });
+        if(newFotoUrl) updated.foto = newFotoUrl;
+        all[idx] = updated;
+        const res = await D.saveProducts(all);
+        if(res && !res.ok){
+          UI.toast('Gagal memperbarui produk: ' + (res.message || 'Terjadi kesalahan.'), 'danger');
+          return;
+        }
+        closeEdit();
+        UI.toast('Produk diperbarui dan menunggu persetujuan admin.', 'warning');
+        await render();
+      }
+    });
+
+    await render();
+  }
+})();
+</script>
+</body>
+</html>

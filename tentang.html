@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tentang — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header id="site-header" class="site-header"></header>
+
+<main class="page-content">
+  <div class="page-header">
+    <div class="container page-header-content">
+      <span class="section-eyebrow">Tentang Kami</span>
+      <h1>Katalog digital milik warga Desa Cihawuk.</h1>
+    </div>
+  </div>
+  <div class="section">
+    <div class="container">
+      <div class="two-column" style="grid-template-columns:1fr;max-width:760px;">
+        <div>
+          <p><strong>Tani Cihawuk</strong> adalah katalog digital untuk UMKM dan pelaku usaha di Desa Cihawuk. Website ini dibuat agar produk warga — mulai dari hasil kebun, olahan makanan, tanaman hias, hingga rempah — bisa ditemukan langsung oleh pembeli, transaksinya yang transparan dan saling menguntungkan.</p>
+          <h2>Bagaimana cara kerjanya?</h2>
+          <p>Setiap pelaku usaha mendaftar sebagai <strong>Produsen</strong> dan diverifikasi oleh <strong>Admin</strong> desa (dikelola BUMDes) sebelum tampil di katalog. Setiap produk yang diunggah produsen juga melalui proses persetujuan admin, sehingga informasi yang tampil ke publik tetap akurat dan dapat dipercaya.</p>
+          <p>Setelah menemukan produk yang diminati, pengunjung dapat langsung menghubungi produsen melalui WhatsApp untuk bertanya atau memesan — tanpa sistem checkout, tanpa perantara.</p>
+          <h2>Untuk siapa website ini?</h2>
+          <p>Untuk <strong>warga</strong> yang ingin membeli produk asli desa, dan untuk <strong>pelaku usaha</strong> yang ingin dikenal lebih luas tanpa perlu biaya pemasaran besar.</p>
+          <a href="daftar-produsen.html" class="btn btn-primary" style="margin-top:0.5rem;">Daftar sebagai Produsen</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+  CihawukUI.renderPublicNav('tentang','');
+  CihawukUI.renderPublicFooter('');
+</script>
+</body>
+</html>

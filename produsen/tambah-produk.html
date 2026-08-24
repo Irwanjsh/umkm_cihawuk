@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tambah Produk — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="role-produsen">
+<div class="admin-page">
+  <div class="admin-layout">
+    <div id="dash-sidebar-mount"></div>
+    <div class="admin-main">
+      <div id="dash-topbar-mount"></div>
+      <main class="admin-content">
+        <div class="admin-page-header"><div><h1>Tambah Produk</h1><p>Produk baru akan berstatus PENDING sampai disetujui admin.</p></div></div>
+
+        <div id="tambah-success" class="alert alert-success" style="display:none;margin-bottom:1.25rem;"></div>
+        <div id="tambah-error" class="alert alert-danger" style="display:none;margin-bottom:1.25rem;"></div>
+
+        <div class="admin-card" style="max-width:680px;" id="tambah-panel">
+          <div class="admin-form">
+            <form id="tambah-form">
+              <div class="form-group"><label for="nama">Nama Produk</label><input type="text" id="nama" required placeholder="Contoh: Wortel Segar"></div>
+              <div class="form-group">
+                <label>Foto Produk</label>
+                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                  <div style="width:88px;height:88px;flex-shrink:0;border-radius:var(--radius-sm);overflow:hidden;background:var(--border-dark);display:flex;align-items:center;justify-content:center;">
+                    <img id="foto-preview" src="" alt="Foto produk" style="display:none;width:100%;height:100%;object-fit:cover;">
+                  </div>
+                  <div style="flex:1;min-width:200px;">
+                    <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp">
+                    <p class="form-help" style="margin-top:0.4rem;">JPG, PNG, atau WEBP. Maksimal 3MB. Opsional — bisa ditambahkan/diganti nanti.</p>
+                    <p id="foto-error" class="form-help" style="color:var(--danger,#c0392b);display:none;"></p>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label for="harga">Harga (Rp)</label><input type="number" id="harga" required min="0" placeholder="15000"></div>
+                <div class="form-group"><label for="kategori">Kategori</label><select id="kategori" required></select></div>
+              </div>
+              <div class="form-group"><label for="deskripsi">Deskripsi</label><textarea id="deskripsi" required placeholder="Jelaskan produk Anda..."></textarea></div>
+              <div class="form-group"><label for="ketersediaan">Ketersediaan</label><select id="ketersediaan"><option>Tersedia</option><option>Habis</option></select></div>
+              <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">Kirim Produk</button></div>
+            </form>
+          </div>
+        </div>
+      </main>
+      <footer class="admin-footer"><p>&copy;Tani Cihawuk &mdash; Proker KKN UMB kel_Cihawuk1_2026</p></footer>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script src="../js/data.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/ui.js"></script>
+<script src="../js/dash-nav.js"></script>
+<script>
+(async function(){
+  const producer = await window.CihawukAuth.requireProducerAuth();
+  if(producer){
+    window.CihawukDashNav.renderShell({role:'produsen', activeKey:'tambah', name:producer.nama_usaha, avatarUrl:producer.foto_path, pageTitle:'Tambah Produk'});
+    const D = window.CihawukData;
+
+    const katSelect = document.getElementById('kategori');
+    katSelect.innerHTML = '<option value="" disabled selected>Pilih kategori</option>' +
+      D.KATEGORI_USAHA.map(k=>`<option value="${k}">${k}</option>`).join('');
+
+    let selectedFile = null;
+    const fotoPreview = document.getElementById('foto-preview');
+    const fotoError = document.getElementById('foto-error');
+    const submitError = document.getElementById('tambah-error');
+
+    document.getElementById('foto-input').addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      fotoError.style.display = 'none';
+      if(!file) return;
+
+      const check = window.CihawukStorage.validateImageFile(file);
+      if(!check.valid){
+        fotoError.textContent = check.message;
+        fotoError.style.display = 'block';
+        e.target.value = '';
+        selectedFile = null;
+        return;
+      }
+      selectedFile = file;
+      fotoPreview.src = URL.createObjectURL(file);
+      fotoPreview.style.display = 'block';
+    });
+
+    document.getElementById('tambah-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      submitError.style.display = 'none';
+      const submitBtn = e.target.querySelector('button[type=submit]');
+      submitBtn.disabled = true;
+
+      const newProduct = await D.addProduct({
+        producerId: producer.id,
+        nama: document.getElementById('nama').value.trim(),
+        harga: Number(document.getElementById('harga').value),
+        kategori: document.getElementById('kategori').value,
+        deskripsi: document.getElementById('deskripsi').value.trim(),
+        ketersediaan: document.getElementById('ketersediaan').value,
+        status: 'PENDING',
+        alasanTolak: '',
+        foto: ''
+      });
+
+      if(!newProduct){
+        submitError.textContent = 'Gagal menyimpan produk. Periksa koneksi Anda dan coba lagi.';
+        submitError.style.display = 'block';
+        submitBtn.disabled = false;
+        return;
+      }
+
+      let fotoWarning = '';
+      if(selectedFile){
+        const uploadResult = await window.CihawukStorage.uploadProductPhoto(selectedFile, newProduct.id);
+        if(uploadResult.ok){
+          const all = await D.getProducts();
+          const idx = all.findIndex(p=>p.id===newProduct.id);
+          if(idx > -1){
+            all[idx].foto = uploadResult.url;
+            await D.saveProducts(all);
+          }
+        } else {
+          fotoWarning = `<br><br><span style="color:var(--danger,#c0392b);">&#9888; Produk tersimpan, tapi foto gagal diunggah: ${uploadResult.message} Anda bisa menambahkan foto lewat halaman "Produk Saya".</span>`;
+        }
+      }
+
+      document.getElementById('tambah-panel').style.display = 'none';
+      const box = document.getElementById('tambah-success');
+      box.style.display = 'flex';
+      box.innerHTML = `<span class="alert-icon">&#10003;</span><div>Produk berhasil dikirim dan sedang menunggu persetujuan admin.${fotoWarning}<br><br>
+        <a href="produk.html" class="btn btn-outline">Lihat Produk Saya</a>
+        <a href="tambah-produk.html" class="btn btn-light">Tambah Produk Lain</a></div>`;
+    });
+  }
+})();
+</script>
+</body>
+</html>

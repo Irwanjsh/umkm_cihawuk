@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profil Produsen — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header id="site-header" class="site-header"></header>
+
+<main class="page-content">
+  <div class="section" style="padding-bottom:0;">
+    <div class="container" id="prod-container"></div>
+  </div>
+  <div class="section" id="prod-products-section" style="display:none;">
+    <div class="container">
+      <div class="section-header"><h2 class="section-title">Produk dari usaha ini</h2></div>
+      <div class="product-grid" id="prod-products-grid"></div>
+    </div>
+  </div>
+</main>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+(async function(){
+  CihawukUI.renderPublicNav('katalog','');
+  CihawukUI.renderPublicFooter('');
+  const D = window.CihawukData, UI = window.CihawukUI;
+
+  const id = new URLSearchParams(location.search).get('id');
+  const producer = await D.getProducerById(id);
+  const container = document.getElementById('prod-container');
+
+  if(!producer || producer.status !== 'ACTIVE'){
+    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128683;</div>
+      <h3>Produsen tidak ditemukan</h3><p>Profil ini belum aktif atau tidak tersedia.</p>
+      <a href="katalog.html" class="btn btn-outline">Kembali ke Katalog</a></div>`;
+  } else {
+    container.innerHTML = `
+      <div class="breadcrumb"><a href="katalog.html">Katalog</a><span class="breadcrumb-separator">/</span><span>${producer.namaUsaha}</span></div>
+      <div class="farmer-detail">
+        <div class="farmer-profile">
+          <div class="farmer-profile-avatar"><img src="${UI.farmerImg(producer.namaUsaha, producer.foto)}" alt="${producer.namaUsaha}"></div>
+          <h1 class="farmer-profile-name">${producer.namaUsaha}</h1>
+          <p class="farmer-profile-location">${producer.alamat}</p>
+          <div class="stamp-verified" style="justify-content:center;">&#10003; Produsen Terverifikasi Desa</div>
+          <div class="farmer-statistics">
+            <div class="farmer-stat"><strong id="stat-jumlah-produk">0</strong><span>Produk Aktif</span></div>
+            <div class="farmer-stat"><strong>${producer.kategori}</strong><span>Kategori</span></div>
+          </div>
+        </div>
+        <div class="farmer-detail-content">
+          <div class="farmer-detail-introduction">
+            <h3 class="product-detail-card-title">Tentang Usaha</h3>
+            <p>${producer.deskripsi}</p>
+            <div class="product-detail-info">
+              <div class="product-info-row"><span class="product-info-label">Pemilik</span><span class="product-info-value">${producer.namaLengkap}</span></div>
+              <div class="product-info-row"><span class="product-info-label">Alamat</span><span class="product-info-value">${producer.alamat}</span></div>
+            </div>
+            <a href="https://wa.me/${producer.whatsapp}?text=${encodeURIComponent('Halo ' + producer.namaUsaha + ', saya melihat profil usaha Anda di Tani Cihawuk.')}" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:1rem;">Hubungi via WhatsApp</a>
+          </div>
+        </div>
+      </div>`;
+
+    const products = (await D.getProductsByProducer(producer.id)).filter(p=>p.status==='APPROVED');
+    document.getElementById('stat-jumlah-produk').textContent = products.length;
+    if(products.length){
+      document.getElementById('prod-products-section').style.display = 'block';
+      document.getElementById('prod-products-grid').innerHTML = products.map(p=>{
+        const tersedia = p.ketersediaan==='Tersedia';
+        return `<a href="produk-detail.html?id=${p.id}" class="product-card">
+          <div class="product-card-image"><img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}">
+            <span class="product-card-badge"><span class="status-badge ${tersedia?'status-available':'status-empty'}">${p.ketersediaan}</span></span></div>
+          <div class="product-card-body">
+            <span class="product-category">${p.kategori}</span>
+            <h3 class="product-name">${p.nama}</h3>
+            <div class="product-price">${UI.fmtRupiah(p.harga)}</div>
+          </div>
+        </a>`;
+      }).join('');
+    }
+  }
+})();
+</script>
+</body>
+</html>

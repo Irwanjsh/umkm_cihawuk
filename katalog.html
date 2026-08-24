@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Katalog Produk — Tani Cihawuk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header id="site-header" class="site-header"></header>
+
+<main class="page-content catalog-page">
+  <div class="page-header">
+    <div class="container page-header-content">
+      <span class="section-eyebrow">Katalog</span>
+      <h1>Semua Produk Desa Cihawuk</h1>
+      <p>Cari dan filter produk dari pelaku usaha yang sudah diverifikasi admin desa.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <div class="catalog-toolbar">
+        <div class="search-box">
+          <span class="search-box-icon">&#128269;</span>
+          <input type="text" id="search-input" placeholder="Cari nama produk...">
+        </div>
+        <div class="filter-group" id="category-chips"></div>
+      </div>
+      <p class="catalog-result-info" id="result-count"></p>
+      <div class="product-grid" id="catalog-grid"></div>
+    </div>
+  </div>
+</main>
+
+<footer id="site-footer" class="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/data.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/ui.js"></script>
+<script>
+(async function(){
+  CihawukUI.renderPublicNav('katalog','');
+  CihawukUI.renderPublicFooter('');
+  const D = window.CihawukData, UI = window.CihawukUI;
+
+  const params = new URLSearchParams(location.search);
+  let state = { search:'', kategori: params.get('kategori') || '' };
+
+  function renderChips(){
+    const all = ['', ...D.KATEGORI_USAHA];
+    document.getElementById('category-chips').innerHTML = all.map(k => `
+      <button type="button" class="filter-button ${state.kategori===k?'active':''}" data-k="${k}">${k || 'Semua Kategori'}</button>
+    `).join('');
+    document.querySelectorAll('.filter-button').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{ state.kategori = btn.dataset.k; renderChips(); await renderGrid(); });
+    });
+  }
+
+  async function renderGrid(){
+    const results = await D.getApprovedProductsForCatalog({search:state.search, kategori:state.kategori});
+    document.getElementById('result-count').innerHTML = `<strong>${results.length}</strong> produk ditemukan`;
+    document.getElementById('catalog-grid').innerHTML = results.length ? results.map(p=>{
+      const availClass = p.ketersediaan==='Tersedia' ? 'status-available' : 'status-empty';
+      return `<a href="produk-detail.html?id=${p.id}" class="product-card">
+        <div class="product-card-image">
+          <img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}">
+          <span class="product-card-badge"><span class="status-badge ${availClass}">${p.ketersediaan}</span></span>
+        </div>
+        <div class="product-card-body">
+          <span class="product-category">${p.kategori}</span>
+          <h3 class="product-name">${p.nama}</h3>
+          <div class="product-meta"><span class="product-meta-item">oleh ${p.producerNamaUsaha}</span></div>
+          <div class="product-price">${UI.fmtRupiah(p.harga)}</div>
+        </div>
+      </a>`;
+    }).join('') : `<div class="empty-state catalog-empty"><div class="empty-state-icon">&#128269;</div><h3>Tidak ditemukan</h3><p>Tidak ada produk yang cocok dengan pencarian Anda.</p></div>`;
+  }
+
+  document.getElementById('search-input').addEventListener('input', async (e)=>{ state.search = e.target.value; await renderGrid(); });
+
+  renderChips();
+  await renderGrid();
+})();
+</script>
+</body>
+</html>
