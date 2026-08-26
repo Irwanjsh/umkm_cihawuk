@@ -123,6 +123,8 @@
           <span>Dibuat untuk menghubungkan warga desa dengan pembeli.</span>
         </div>
       </div>`;
+  }
+
   function initPasswordToggles(){
     // Checkbox toggle: [x] Tampilkan kata sandi
     document.querySelectorAll('.show-password-toggle').forEach(chk => {
