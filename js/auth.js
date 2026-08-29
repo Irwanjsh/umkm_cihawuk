@@ -132,6 +132,22 @@
   async function registerProducer(data){
     const email = normalizeEmail(data.email);
 
+    if(!email || !data.password || !data.namaLengkap || !data.namaUsaha || !data.whatsapp || !data.alamat || !data.deskripsi || !data.kategori){
+      return { ok:false, message:'Harap lengkapi semua kolom pendaftaran yang wajib diisi.' };
+    }
+
+    if(data.password.length < 6){
+      return { ok:false, message:'Kata sandi minimal harus 6 karakter.' };
+    }
+
+    // Validasi foto SEBELUM akun didaftarkan ke server Supabase Auth
+    if(data.fotoFile && window.CihawukStorage){
+      const check = window.CihawukStorage.validateImageFile(data.fotoFile);
+      if(!check.valid){
+        return { ok:false, message: check.message };
+      }
+    }
+
     const { data: signUpData, error: signUpError } = await client.auth.signUp({
       email: email,
       password: data.password

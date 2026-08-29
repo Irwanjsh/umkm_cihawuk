@@ -62,7 +62,7 @@
                 </div>
                 <div style="flex:1;min-width:200px;">
                   <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp">
-                  <p class="form-help" style="margin-top:0.4rem;">JPG, PNG, atau WEBP. Maksimal 3MB. Bersifat opsional.</p>
+                  <p class="form-help" style="margin-top:0.4rem;">JPG, PNG, atau WEBP. Maksimal 5MB. Bersifat opsional.</p>
                   <p id="foto-error" class="form-help" style="color:var(--danger,#c0392b);display:none;"></p>
                 </div>
               </div>
@@ -126,6 +126,14 @@
 
   document.getElementById('daftar-form').addEventListener('submit', async (e)=>{
     e.preventDefault();
+    if(selectedFile){
+      const check = window.CihawukStorage.validateImageFile(selectedFile);
+      if(!check.valid){
+        alert(check.message);
+        return;
+      }
+    }
+
     const submitBtn = e.target.querySelector('button[type=submit]');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Mengirim pendaftaran...';

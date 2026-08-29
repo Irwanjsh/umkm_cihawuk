@@ -21,7 +21,7 @@
 
   const BUCKET = 'cihawuk-photos';
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-  const MAX_SIZE_MB = 3;
+  const MAX_SIZE_MB = 5;
 
   // -----------------------------------------------------------
   // validateImageFile(file)
