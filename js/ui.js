@@ -130,7 +130,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <span>&copy; ${new Date().getFullYear()} Tani Cihawuk — Proker KKN UMB kel_Cihawuk1_2026.</span>
+          <span>&copy; ${new Date().getFullYear()} Tani Cihawuk — KKN Cihawuk 1 UMB 2026.</span>
           <span>Dibuat untuk menghubungkan warga desa dengan pembeli.</span>
         </div>
       </div>`;
