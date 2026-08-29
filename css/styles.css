@@ -1330,7 +1330,9 @@ SEARCH / FILTER
 .footer-bottom {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.6);
@@ -1406,6 +1408,7 @@ SEARCH / FILTER
   .footer-bottom {
     flex-direction: row;
     align-items: center;
+    text-align: left;
     justify-content: space-between;
   }
 
