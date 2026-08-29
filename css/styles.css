@@ -1438,6 +1438,7 @@ SEARCH / FILTER
   .main-navigation {
     position: static;
     display: block;
+    height: auto;
     padding: 0;
     background: transparent;
     border-top: none;
