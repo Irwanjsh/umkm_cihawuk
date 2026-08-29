@@ -77,15 +77,17 @@
     const fotoPreview = document.getElementById('foto-preview');
     const fotoError = document.getElementById('foto-error');
 
-    if(currentFotoUrl){
-      fotoPreview.src = currentFotoUrl;
-      fotoPreview.style.display = 'block';
-    }
+    fotoPreview.src = currentFotoUrl || UI.avatarImg('');
+    fotoPreview.style.display = 'block';
 
     document.getElementById('foto-input').addEventListener('change', (e)=>{
       const file = e.target.files[0];
       fotoError.style.display = 'none';
-      if(!file) return;
+      if(!file){
+        selectedFile = null;
+        fotoPreview.src = currentFotoUrl || UI.avatarImg('');
+        return;
+      }
 
       const check = window.CihawukStorage.validateImageFile(file);
       if(!check.valid){
@@ -93,11 +95,11 @@
         fotoError.style.display = 'block';
         e.target.value = '';
         selectedFile = null;
+        fotoPreview.src = currentFotoUrl || UI.avatarImg('');
         return;
       }
       selectedFile = file;
       fotoPreview.src = URL.createObjectURL(file);
-      fotoPreview.style.display = 'block';
     });
 
     document.getElementById('profil-form').addEventListener('submit', async (e)=>{

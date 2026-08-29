@@ -57,9 +57,8 @@
             <div class="form-group">
               <label>Foto/Logo Usaha (Opsional)</label>
               <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-                <div class="farmer-avatar" style="width:72px;height:72px;flex-shrink:0;background:var(--border-dark);display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;">
-                  <img id="foto-preview" src="" alt="Preview logo" style="display:none;width:100%;height:100%;object-fit:cover;">
-                  <span id="foto-placeholder-icon" style="font-size:1.5rem;color:var(--text-muted);">&#128247;</span>
+                <div class="farmer-avatar" style="width:72px;height:72px;flex-shrink:0;overflow:hidden;border-radius:50%;">
+                  <img id="foto-preview" src="" alt="Preview logo" style="width:100%;height:100%;object-fit:cover;">
                 </div>
                 <div style="flex:1;min-width:200px;">
                   <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp">
@@ -98,17 +97,17 @@
 
   let selectedFile = null;
   const fotoPreview = document.getElementById('foto-preview');
-  const fotoPlaceholderIcon = document.getElementById('foto-placeholder-icon');
   const fotoError = document.getElementById('foto-error');
+  const UI = window.CihawukUI;
+
+  fotoPreview.src = UI.avatarImg('');
 
   document.getElementById('foto-input').addEventListener('change', (e)=>{
     const file = e.target.files[0];
     fotoError.style.display = 'none';
     if(!file){
       selectedFile = null;
-      fotoPreview.src = '';
-      fotoPreview.style.display = 'none';
-      fotoPlaceholderIcon.style.display = 'block';
+      fotoPreview.src = UI.avatarImg('');
       return;
     }
 
@@ -118,15 +117,11 @@
       fotoError.style.display = 'block';
       e.target.value = '';
       selectedFile = null;
-      fotoPreview.src = '';
-      fotoPreview.style.display = 'none';
-      fotoPlaceholderIcon.style.display = 'block';
+      fotoPreview.src = UI.avatarImg('');
       return;
     }
     selectedFile = file;
     fotoPreview.src = URL.createObjectURL(file);
-    fotoPreview.style.display = 'block';
-    fotoPlaceholderIcon.style.display = 'none';
   });
 
   document.getElementById('daftar-form').addEventListener('submit', async (e)=>{

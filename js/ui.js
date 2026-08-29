@@ -17,12 +17,23 @@
       `fill='${fg}' text-anchor='middle' dominant-baseline='middle'>${letter}</text></svg>`;
     return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
-  // url: opsional, hasil upload Supabase Storage (Phase 8). Kalau
-  // terisi, dipakai langsung; kalau kosong/null, tetap fallback ke
-  // placeholder SVG seperti sebelumnya — tidak ada perilaku lama
-  // yang berubah untuk data yang belum punya foto.
+  // Default Avatar Icon (Instagram-style person silhouette)
+  function defaultAvatarImg(bg, fg){
+    bg = bg || '#e2e8f0';
+    fg = fg || '#94a3b8';
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>`+
+      `<defs><clipPath id='c'><circle cx='50' cy='50' r='50'/></clipPath></defs>`+
+      `<g clip-path='url(#c)'>`+
+      `<rect width='100' height='100' fill='${bg}'/>`+
+      `<circle cx='50' cy='36' r='18' fill='${fg}'/>`+
+      `<ellipse cx='50' cy='82' rx='34' ry='24' fill='${fg}'/>`+
+      `</g></svg>`;
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
+  }
+
   function productImg(nama, url){ return url || phImg((nama||'?').charAt(0).toUpperCase()); }
-  function farmerImg(nama, url){ return url || phImg(initial(nama), '#efebe9', '#6d4c41'); }
+  function farmerImg(nama, url){ return url || defaultAvatarImg(); }
+  function avatarImg(url){ return url || defaultAvatarImg(); }
 
 
   // ---------- Toast ----------
@@ -172,5 +183,5 @@
     initPasswordToggles();
   }
 
-  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
+  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, avatarImg, defaultAvatarImg, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
 })();

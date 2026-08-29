@@ -91,9 +91,9 @@
       </a>`
     ).join('');
 
-    const avatarHtml = avatarUrl
-      ? `<img src="${avatarUrl}" alt="${name||'Avatar'}">`
-      : (name||'?').charAt(0).toUpperCase();
+    const UI = window.CihawukUI;
+    const defaultAvatar = (UI && UI.avatarImg) ? UI.avatarImg('') : 'data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Cdefs%3E%3CclipPath%20id%3D%27c%27%3E%3Ccircle%20cx%3D%2750%27%20cy%3D%2750%27%20r%3D%2750%27%2F%3E%3C%2Fdefs%3E%3Cg%20clip-path%3D%27url(%23c)%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20fill%3D%27%23e2e8f0%27%2F%3E%3Ccircle%20cx%3D%2750%27%20cy%3D%2736%27%20r%3D%2718%27%20fill%3D%27%2394a3b8%27%2F%3E%3Cellipse%20cx%3D%2750%27%20cy%3D%2782%27%20rx%3D%2734%27%20ry%3D%2724%27%20fill%3D%27%2394a3b8%27%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E';
+    const avatarHtml = `<img src="${avatarUrl || defaultAvatar}" alt="${name||'Avatar'}">`;
 
     sidebarMount.innerHTML = `
       <div class="admin-sidebar-overlay" id="sidebar-overlay" style="display:none;"></div>
