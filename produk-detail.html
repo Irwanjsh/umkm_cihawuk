@@ -41,9 +41,17 @@
       <a href="katalog.html" class="btn btn-outline">Kembali ke Katalog</a></div>`;
   } else {
     const producer = await D.getProducerById(product.producerId);
-    const waText = encodeURIComponent(`Halo ${producer.namaUsaha}, saya melihat produk "${product.nama}" di Tani Cihawuk. Apakah masih tersedia?`);
-    const waLink = `https://wa.me/${producer.whatsapp}?text=${waText}`;
-    const tersedia = product.ketersediaan === 'Tersedia';
+    const isAkanTersedia = product.ketersediaan === 'Akan Tersedia';
+    const isTersedia = product.ketersediaan === 'Tersedia';
+
+    let defaultMsg = `Halo ${producer.namaUsaha}, saya melihat produk "${product.nama}" di Tani Cihawuk. Apakah masih tersedia?`;
+    if(isAkanTersedia){
+      defaultMsg = `Halo ${producer.namaUsaha}, saya tertarik untuk memesan/Pre-Order produk "${product.nama}" (estimasi tersedia: ${product.estimasiTersedia || 'dalam waktu dekat'}) di Tani Cihawuk. Boleh info detailnya?`;
+    }
+    const waText = encodeURIComponent(defaultMsg);
+    let waPhone = (producer.whatsapp || '').replace(/[^0-9]/g, '');
+    if(waPhone.startsWith('0')) waPhone = '62' + waPhone.slice(1);
+    const waLink = `https://wa.me/${waPhone}?text=${waText}`;
 
     container.innerHTML = `
       <div class="breadcrumb"><a href="katalog.html">Katalog</a><span class="breadcrumb-separator">/</span><span>${product.nama}</span></div>
@@ -56,9 +64,20 @@
           <p class="product-detail-description">${product.deskripsi}</p>
 
           <div class="product-detail-info">
-            <div class="product-info-row"><span class="product-info-label">Ketersediaan</span><span class="product-info-value"><span class="status-badge ${tersedia?'status-available':'status-empty'}">${product.ketersediaan}</span></span></div>
+            <div class="product-info-row">
+              <span class="product-info-label">Ketersediaan</span>
+              <span class="product-info-value">${UI.ketersediaanBadge(product.ketersediaan, product.estimasiTersedia)}</span>
+            </div>
             <div class="product-info-row"><span class="product-info-label">Kategori</span><span class="product-info-value">${product.kategori}</span></div>
           </div>
+
+          ${isAkanTersedia ? `
+            <div class="alert alert-warning" style="margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:0.75rem;padding:0.85rem 1rem;">
+              <span class="alert-icon" style="font-size:1.25rem;">&#8987;</span>
+              <div style="font-size:0.88rem;line-height:1.5;">
+                <strong>Jadwal Ketersediaan / Panen:</strong> Produk ini diperkirakan siap pada <strong>${product.estimasiTersedia || 'waktu dekat'}</strong>. Anda dapat melakukan pemesanan awal (Pre-Order) lewat WhatsApp di bawah.
+              </div>
+            </div>` : ''}
 
           <div class="product-farmer-card" style="margin-bottom:1.25rem;">
             <div class="farmer-avatar"><img src="${UI.farmerImg(producer.namaUsaha, producer.foto)}" alt="${producer.namaUsaha}"></div>
@@ -70,9 +89,11 @@
           </div>
 
           <div class="product-detail-actions">
-            ${tersedia
+            ${isTersedia
               ? `<a href="${waLink}" target="_blank" rel="noopener" class="btn btn-primary btn-block">Hubungi via WhatsApp</a>`
-              : `<button class="btn btn-outline btn-block" disabled>Stok sedang habis</button>`}
+              : (isAkanTersedia
+                  ? `<a href="${waLink}" target="_blank" rel="noopener" class="btn btn-primary btn-block" style="background:#d97706;border-color:#d97706;">Pesan / Pre-Order via WhatsApp &rarr;</a>`
+                  : `<button class="btn btn-outline btn-block" disabled>Stok sedang habis</button>`)}
           </div>
         </div>
       </div>`;

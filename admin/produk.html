@@ -199,7 +199,7 @@
             </div>
             <div class="profile-meta-item">
               <div class="profile-meta-label">Ketersediaan</div>
-              <div class="profile-meta-value">${p.ketersediaan || 'Tersedia'}</div>
+              <div class="profile-meta-value">${UI.formatKetersediaan(p.ketersediaan, p.estimasiTersedia)}</div>
             </div>
             ${producer && producer.whatsapp ? `
             <div class="profile-meta-item" style="grid-column:1/-1;">

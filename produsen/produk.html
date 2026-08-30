@@ -56,7 +56,19 @@
       </div>
       <div class="form-row">
         <div class="form-group"><label for="edit-harga">Harga (Rp)</label><input type="number" id="edit-harga" required min="0"></div>
-        <div class="form-group"><label for="edit-ketersediaan">Ketersediaan</label><select id="edit-ketersediaan"><option>Tersedia</option><option>Habis</option></select></div>
+        <div class="form-group">
+          <label for="edit-ketersediaan">Status Ketersediaan</label>
+          <select id="edit-ketersediaan">
+            <option value="Tersedia">Tersedia (Ready Stock)</option>
+            <option value="Habis">Habis (Stok Kosong)</option>
+            <option value="Akan Tersedia">Akan Tersedia / Jadwal Panen (Pre-Order)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="edit-estimasi-container" style="display:none;">
+        <label for="edit-estimasiTersedia">Estimasi Waktu / Tanggal Tersedia</label>
+        <input type="text" id="edit-estimasiTersedia" placeholder="Contoh: 15 September 2026 atau Akhir Bulan Ini">
+        <p class="form-help" style="margin-top:0.35rem;">Informasikan perkiraan waktu panen/produksi untuk pesanan Pre-Order.</p>
       </div>
       <div class="form-group"><label for="edit-kategori">Kategori</label><select id="edit-kategori"></select></div>
       <div class="form-group"><label for="edit-deskripsi">Deskripsi</label><textarea id="edit-deskripsi" required></textarea></div>
@@ -91,7 +103,7 @@
           <td><div class="table-product"><div class="table-product-image"><img src="${UI.productImg(p.nama, p.foto)}" alt=""></div><div><strong>${p.nama}</strong></div></div></td>
           <td>${p.kategori}</td>
           <td>${UI.fmtRupiah(p.harga)}</td>
-          <td>${p.ketersediaan}</td>
+          <td>${UI.ketersediaanBadge(p.ketersediaan, p.estimasiTersedia)}</td>
           <td><span class="status-badge ${badgeMap[p.status]}">${p.status}</span>
               ${p.status==='REJECTED' && p.alasanTolak ? `<div class="form-help">${p.alasanTolak}</div>` : ''}</td>
           <td class="table-action-column">
@@ -129,6 +141,14 @@
     let selectedFile = null;
     const fotoPreview = document.getElementById('edit-foto-preview');
     const fotoError = document.getElementById('edit-foto-error');
+    const editKetersediaanSelect = document.getElementById('edit-ketersediaan');
+    const editEstimasiContainer = document.getElementById('edit-estimasi-container');
+    const editEstimasiInput = document.getElementById('edit-estimasiTersedia');
+
+    editKetersediaanSelect.addEventListener('change', ()=>{
+      editEstimasiContainer.style.display = editKetersediaanSelect.value === 'Akan Tersedia' ? 'block' : 'none';
+      if(editKetersediaanSelect.value !== 'Akan Tersedia') editEstimasiInput.value = '';
+    });
 
     document.getElementById('edit-foto-input').addEventListener('change', (e)=>{
       const file = e.target.files[0];
@@ -158,9 +178,11 @@
       document.getElementById('edit-id').value = p.id;
       document.getElementById('edit-nama').value = p.nama;
       document.getElementById('edit-harga').value = p.harga;
-      document.getElementById('edit-ketersediaan').value = p.ketersediaan;
+      document.getElementById('edit-ketersediaan').value = p.ketersediaan || 'Tersedia';
       document.getElementById('edit-kategori').value = p.kategori;
       document.getElementById('edit-deskripsi').value = p.deskripsi;
+      editEstimasiInput.value = p.estimasiTersedia || '';
+      editEstimasiContainer.style.display = (p.ketersediaan === 'Akan Tersedia') ? 'block' : 'none';
 
       editingOldFoto = p.foto || '';
       selectedFile = null;
@@ -199,7 +221,8 @@
         const updated = Object.assign({}, all[idx], {
           nama: document.getElementById('edit-nama').value.trim(),
           harga: Number(document.getElementById('edit-harga').value),
-          ketersediaan: document.getElementById('edit-ketersediaan').value,
+          ketersediaan: editKetersediaanSelect.value,
+          estimasiTersedia: editEstimasiInput.value.trim(),
           kategori: document.getElementById('edit-kategori').value,
           deskripsi: document.getElementById('edit-deskripsi').value.trim(),
           status: 'PENDING',

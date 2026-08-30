@@ -70,8 +70,7 @@
       <tr>
         <td><div class="table-product"><div class="table-product-image"><img src="${UI.productImg(p.nama, p.foto)}" alt=""></div><div><strong>${p.nama}</strong></div></div></td>
         <td>${p.kategori}</td>
-        <td>${UI.fmtRupiah(p.harga)}</td>
-        <td>${p.ketersediaan}</td>
+        <td>${UI.ketersediaanBadge(p.ketersediaan, p.estimasiTersedia)}</td>
         <td><span class="status-badge ${badgeMap[p.status]}">${p.status}</span></td>
       </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><h3>Belum ada produk</h3><p><a href="tambah-produk.html">Tambah produk pertama Anda</a>.</p></div></td></tr>`;
   }

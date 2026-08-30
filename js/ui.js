@@ -52,6 +52,24 @@
   function farmerImg(nama, url){ return url || defaultAvatarImg(); }
   function avatarImg(url){ return url || defaultAvatarImg(); }
 
+  function formatKetersediaan(ketersediaan, estimasiTersedia){
+    if(ketersediaan === 'Akan Tersedia'){
+      return estimasiTersedia ? `Akan Tersedia (${estimasiTersedia})` : 'Akan Tersedia';
+    }
+    return ketersediaan || 'Tersedia';
+  }
+
+  function ketersediaanBadge(ketersediaan, estimasiTersedia){
+    if(ketersediaan === 'Akan Tersedia'){
+      const text = estimasiTersedia ? `⏳ Panen: ${estimasiTersedia}` : '⏳ Akan Tersedia';
+      return `<span class="status-badge status-limited" title="Akan tersedia pada ${estimasiTersedia||'waktu dekat'}">${text}</span>`;
+    }
+    if(ketersediaan === 'Tersedia'){
+      return `<span class="status-badge status-available">Tersedia</span>`;
+    }
+    return `<span class="status-badge status-empty">Habis</span>`;
+  }
+
 
   // ---------- Toast ----------
   function ensureToastContainer(){
@@ -200,5 +218,5 @@
     initPasswordToggles();
   }
 
-  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, avatarImg, defaultAvatarImg, defaultProductImg, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
+  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, avatarImg, defaultAvatarImg, defaultProductImg, formatKetersediaan, ketersediaanBadge, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
 })();

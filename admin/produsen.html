@@ -429,7 +429,7 @@
                     </td>
                     <td><span style="font-size:0.82rem;">${prod.kategori}</span></td>
                     <td><strong style="color:var(--primary);">${UI.fmtRupiah(prod.harga)}</strong></td>
-                    <td><span style="font-size:0.82rem;">${prod.ketersediaan || 'Tersedia'}</span></td>
+                    <td><span style="font-size:0.82rem;">${UI.formatKetersediaan(prod.ketersediaan, prod.estimasiTersedia)}</span></td>
                     <td><span class="status-badge ${prodBadgeMap[prod.status] || ''}">${prod.status}</span></td>
                     <td class="table-action-column">
                       <div class="table-actions">

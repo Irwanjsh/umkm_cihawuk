@@ -76,10 +76,9 @@
     if(products.length){
       document.getElementById('prod-products-section').style.display = 'block';
       document.getElementById('prod-products-grid').innerHTML = products.map(p=>{
-        const tersedia = p.ketersediaan==='Tersedia';
         return `<a href="produk-detail.html?id=${p.id}" class="product-card">
           <div class="product-card-image"><img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}">
-            <span class="product-card-badge"><span class="status-badge ${tersedia?'status-available':'status-empty'}">${p.ketersediaan}</span></span></div>
+            <span class="product-card-badge">${UI.ketersediaanBadge(p.ketersediaan, p.estimasiTersedia)}</span></div>
           <div class="product-card-body">
             <span class="product-category">${p.kategori}</span>
             <h3 class="product-name">${p.nama}</h3>

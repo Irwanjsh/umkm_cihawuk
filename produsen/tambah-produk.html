@@ -42,7 +42,19 @@
                 <div class="form-group"><label for="kategori">Kategori</label><select id="kategori" required></select></div>
               </div>
               <div class="form-group"><label for="deskripsi">Deskripsi</label><textarea id="deskripsi" required placeholder="Jelaskan produk Anda..."></textarea></div>
-              <div class="form-group"><label for="ketersediaan">Ketersediaan</label><select id="ketersediaan"><option>Tersedia</option><option>Habis</option></select></div>
+              <div class="form-group">
+                <label for="ketersediaan">Status Ketersediaan</label>
+                <select id="ketersediaan">
+                  <option value="Tersedia">Tersedia (Ready Stock)</option>
+                  <option value="Habis">Habis (Stok Kosong)</option>
+                  <option value="Akan Tersedia">Akan Tersedia / Jadwal Panen (Pre-Order)</option>
+                </select>
+              </div>
+              <div class="form-group" id="estimasi-container" style="display:none;">
+                <label for="estimasiTersedia">Estimasi Waktu / Tanggal Tersedia</label>
+                <input type="text" id="estimasiTersedia" placeholder="Contoh: 15 September 2026 atau Akhir Bulan Ini">
+                <p class="form-help" style="margin-top:0.35rem;">Informasikan perkiraan waktu panen/produksi agar calon pembeli dapat melakukan pemesanan awal (Pre-Order).</p>
+              </div>
               <div class="form-actions"><button type="submit" class="btn btn-primary btn-block">Kirim Produk</button></div>
             </form>
           </div>
@@ -100,6 +112,15 @@
       fotoPreview.src = URL.createObjectURL(file);
     });
 
+    const ketersediaanSelect = document.getElementById('ketersediaan');
+    const estimasiContainer = document.getElementById('estimasi-container');
+    const estimasiInput = document.getElementById('estimasiTersedia');
+
+    ketersediaanSelect.addEventListener('change', ()=>{
+      estimasiContainer.style.display = ketersediaanSelect.value === 'Akan Tersedia' ? 'block' : 'none';
+      if(ketersediaanSelect.value !== 'Akan Tersedia') estimasiInput.value = '';
+    });
+
     document.getElementById('tambah-form').addEventListener('submit', async (e)=>{
       e.preventDefault();
       submitError.style.display = 'none';
@@ -126,7 +147,8 @@
         harga: hargaVal,
         kategori: document.getElementById('kategori').value,
         deskripsi: document.getElementById('deskripsi').value.trim(),
-        ketersediaan: document.getElementById('ketersediaan').value,
+        ketersediaan: ketersediaanSelect.value,
+        estimasiTersedia: estimasiInput.value.trim(),
         status: 'PENDING',
         alasanTolak: '',
         foto: ''

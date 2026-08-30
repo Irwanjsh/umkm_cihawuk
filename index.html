@@ -108,11 +108,10 @@
 
   const featured = (await D.getApprovedProductsForCatalog()).slice(0,4);
   document.getElementById('home-featured-products').innerHTML = featured.length ? featured.map(p => {
-    const availClass = p.ketersediaan==='Tersedia' ? 'status-available' : 'status-empty';
     return `<a href="produk-detail.html?id=${p.id}" class="product-card">
       <div class="product-card-image">
         <img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}">
-        <span class="product-card-badge"><span class="status-badge ${availClass}">${p.ketersediaan}</span></span>
+        <span class="product-card-badge">${UI.ketersediaanBadge(p.ketersediaan, p.estimasiTersedia)}</span>
       </div>
       <div class="product-card-body">
         <span class="product-category">${p.kategori}</span>

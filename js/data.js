@@ -73,6 +73,19 @@
 
   // ---- mapping products: snake_case (DB) <-> camelCase (UI) ----
   function productRowToCamel(r){
+    let rawDeskripsi = r.deskripsi || '';
+    let estimasiTersedia = '';
+    let ketersediaan = r.ketersediaan || 'Tersedia';
+
+    const match = rawDeskripsi.match(/\[EST_READY:(.*?)\]/);
+    if(match){
+      estimasiTersedia = match[1].trim();
+      rawDeskripsi = rawDeskripsi.replace(/\[EST_READY:.*?\]\n?/, '').trim();
+      ketersediaan = 'Akan Tersedia';
+    } else if(ketersediaan.toLowerCase().includes('akan tersedia')){
+      ketersediaan = 'Akan Tersedia';
+    }
+
     return {
       id: r.id,
       producerId: r.producer_id,
@@ -80,22 +93,33 @@
       foto: r.foto_path || '',
       harga: r.harga,
       kategori: r.kategori,
-      deskripsi: r.deskripsi,
-      ketersediaan: r.ketersediaan,
+      deskripsi: rawDeskripsi,
+      ketersediaan: ketersediaan,
+      estimasiTersedia: estimasiTersedia,
       status: r.status,
       alasanTolak: r.alasan_tolak || '',
       createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now()
     };
   }
   function productCamelToSnake(p){
+    let finalDeskripsi = (p.deskripsi || '').trim();
+    let dbKetersediaan = p.ketersediaan || 'Tersedia';
+
+    if(p.ketersediaan === 'Akan Tersedia'){
+      if(p.estimasiTersedia){
+        finalDeskripsi = `[EST_READY:${p.estimasiTersedia.trim()}]\n${finalDeskripsi}`.trim();
+      }
+      dbKetersediaan = 'Habis'; // Supabase DB check constraint safety fallback
+    }
+
     const row = {
       producer_id: p.producerId,
       nama: p.nama,
       foto_path: p.foto || null,
       harga: Number(p.harga),
       kategori: p.kategori,
-      deskripsi: p.deskripsi,
-      ketersediaan: p.ketersediaan,
+      deskripsi: finalDeskripsi,
+      ketersediaan: dbKetersediaan,
       status: p.status,
       alasan_tolak: p.alasanTolak || null
     };
