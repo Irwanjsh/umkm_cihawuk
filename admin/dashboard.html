@@ -112,7 +112,14 @@
     const pendingProducers = producers.filter(p=>p.status==='PENDING').sort((a,b)=>b.createdAt-a.createdAt).slice(0,5);
     document.getElementById('pengajuan-body').innerHTML = pendingProducers.length ? pendingProducers.map(p=>`
       <tr>
-        <td><div class="table-person"><div class="table-person-avatar"><img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt=""></div><div><strong>${p.namaUsaha}</strong></div></div></td>
+        <td>
+          <a href="pengajuan-produsen.html" style="text-decoration:none;color:inherit;" title="Buka pengajuan produsen">
+            <div class="table-person">
+              <div class="table-person-avatar"><img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt=""></div>
+              <div><strong style="color:var(--primary-dark);">${p.namaUsaha}</strong></div>
+            </div>
+          </a>
+        </td>
         <td>${p.kategori}</td><td>${new Date(p.createdAt).toLocaleDateString('id-ID')}</td>
         <td><span class="status-badge status-limited">PENDING</span></td>
       </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><h3>Tidak ada pengajuan baru</h3></div></td></tr>`;
@@ -122,8 +129,16 @@
     document.getElementById('produk-pending-body').innerHTML = pendingProducts.length ? pendingProducts.map(p=>{
       const prod = producerMap[p.producerId];
       return `<tr>
-        <td><div class="table-product"><div class="table-product-image"><img src="${UI.productImg(p.nama, p.foto)}" alt=""></div><div><strong>${p.nama}</strong></div></div></td>
-        <td>${prod?prod.namaUsaha:'-'}</td><td>${p.kategori}</td>
+        <td>
+          <a href="produk.html" style="text-decoration:none;color:inherit;" title="Buka kelola produk">
+            <div class="table-product">
+              <div class="table-product-image"><img src="${UI.productImg(p.nama, p.foto)}" alt=""></div>
+              <div><strong style="color:var(--primary-dark);">${p.nama}</strong></div>
+            </div>
+          </a>
+        </td>
+        <td>${prod?`<a href="produsen.html" style="color:var(--primary);text-decoration:none;">${prod.namaUsaha}</a>`:'-'}</td>
+        <td>${p.kategori}</td>
         <td><span class="status-badge status-limited">PENDING</span></td>
       </tr>`;
     }).join('') : `<tr><td colspan="4"><div class="empty-state"><h3>Tidak ada produk menunggu persetujuan</h3></div></td></tr>`;

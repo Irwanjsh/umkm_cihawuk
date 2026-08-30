@@ -119,23 +119,75 @@
 
     async function showDetail(id){
       const p = await D.getProducerById(id);
+      let waClean = p.whatsapp ? p.whatsapp.replace(/[^0-9]/g, '') : '';
+      if(waClean.startsWith('0')) waClean = '62' + waClean.slice(1);
+      const waLink = waClean ? `https://wa.me/${waClean}` : '#';
+
       document.getElementById('detail-box').innerHTML = `
-        <div class="admin-modal-header"><h2>${p.namaUsaha}</h2><button type="button" class="modal-close" id="detail-close">&times;</button></div>
-        <div class="admin-form">
-          <div class="product-detail-info">
-            <div class="product-info-row"><span class="product-info-label">Pemilik</span><span class="product-info-value">${p.namaLengkap}</span></div>
-            <div class="product-info-row"><span class="product-info-label">Email</span><span class="product-info-value">${p.email}</span></div>
-            <div class="product-info-row"><span class="product-info-label">WhatsApp</span><span class="product-info-value">${p.whatsapp}</span></div>
-            <div class="product-info-row"><span class="product-info-label">Kategori</span><span class="product-info-value">${p.kategori}</span></div>
-            <div class="product-info-row"><span class="product-info-label">Alamat</span><span class="product-info-value">${p.alamat}</span></div>
+        <div class="admin-modal-header">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <div class="profile-hero-avatar" style="width:48px;height:48px;">
+              <img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt="${p.namaUsaha}">
+            </div>
+            <div>
+              <h2 style="font-size:1.15rem;margin:0;">${p.namaUsaha}</h2>
+              <span class="status-badge status-limited" style="margin-top:0.2rem;display:inline-block;">PENDING</span>
+            </div>
           </div>
-          <p style="margin-top:1rem;">${p.deskripsi}</p>
-          <div class="admin-modal-actions"><button class="btn btn-outline" id="detail-close-2">Tutup</button></div>
+          <button type="button" class="modal-close" id="detail-close">&times;</button>
+        </div>
+        <div class="admin-form">
+          <div class="profile-meta-grid" style="margin-bottom:1rem;">
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">Pemilik</div>
+              <div class="profile-meta-value">${p.namaLengkap}</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">Kategori</div>
+              <div class="profile-meta-value">${p.kategori}</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">WhatsApp</div>
+              <div class="profile-meta-value"><a href="${waLink}" target="_blank" style="color:var(--primary);">&#128172; ${p.whatsapp}</a></div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">Email</div>
+              <div class="profile-meta-value"><a href="mailto:${p.email}">${p.email}</a></div>
+            </div>
+            <div class="profile-meta-item" style="grid-column:1/-1;">
+              <div class="profile-meta-label">Alamat</div>
+              <div class="profile-meta-value">${p.alamat}</div>
+            </div>
+          </div>
+          <div>
+            <div class="profile-meta-label" style="margin-bottom:0.25rem;">Deskripsi Usaha</div>
+            <div style="background:var(--surface-soft);padding:0.75rem;border-radius:var(--radius-sm);font-size:0.88rem;line-height:1.5;">
+              ${p.deskripsi || '<em style="color:var(--text-muted);">Tidak ada deskripsi.</em>'}
+            </div>
+          </div>
+          <div class="admin-modal-actions" style="display:flex;justify-content:space-between;flex-direction:row;gap:0.5rem;margin-top:1.25rem;">
+            <button class="btn btn-primary" id="detail-approve-btn">&#10003; Setujui Produsen</button>
+            <button class="btn btn-outline" id="detail-close-2">Tutup</button>
+          </div>
         </div>`;
       detailModal.style.display = 'grid';
       const close = ()=> detailModal.style.display = 'none';
       document.getElementById('detail-close').addEventListener('click', close);
       document.getElementById('detail-close-2').addEventListener('click', close);
+
+      document.getElementById('detail-approve-btn').addEventListener('click', async ()=>{
+        close();
+        const all = await D.getProducers();
+        const idx = all.findIndex(x=>x.id===id);
+        if(idx > -1){
+          all[idx].status = 'ACTIVE';
+          all[idx].alasanTolak = '';
+          const res = await D.saveProducers(all);
+          if(res && !res.ok){ UI.toast('Gagal menyetujui produsen: ' + (res.message||''), 'danger'); return; }
+          UI.toast('Produsen disetujui dan kini aktif.');
+          await render();
+        }
+      });
     }
     detailModal.querySelector('.admin-modal-overlay').addEventListener('click', ()=> detailModal.style.display='none');
 

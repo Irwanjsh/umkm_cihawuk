@@ -18,7 +18,10 @@
         <div class="admin-page-header"><div><h1>Kelola Produk</h1><p>Seluruh produk dari semua produsen.</p></div></div>
 
         <div class="admin-card">
-          <div class="data-toolbar">
+          <div class="data-toolbar" style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+            <div style="flex:1;min-width:240px;max-width:400px;">
+              <input type="text" id="search-input" placeholder="Cari nama produk atau produsen..." style="width:100%;padding:0.6rem 0.9rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.9rem;">
+            </div>
             <div class="data-filter">
               <select id="status-filter">
                 <option value="">Semua Status</option>
@@ -71,29 +74,40 @@
     const D = window.CihawukData, UI = window.CihawukUI;
     let filterStatus = '';
     let rejectTargetId = null;
+    let searchQuery = '';
     const badgeMap = {APPROVED:'status-available',PENDING:'status-limited',REJECTED:'status-empty'};
 
     document.getElementById('status-filter').addEventListener('change', async (e)=>{ filterStatus = e.target.value; await render(); });
+    document.getElementById('search-input').addEventListener('input', (e)=>{ searchQuery = e.target.value.toLowerCase().trim(); render(); });
 
     const detailModal = document.getElementById('detail-modal');
     const rejectModal = document.getElementById('reject-modal');
 
     async function render(){
       let list = await D.getProducts();
-      if(filterStatus) list = list.filter(p=>p.status===filterStatus);
-      list = list.sort((a,b)=>b.createdAt-a.createdAt);
-
       const producers = await D.getProducers();
       const producerMap = {};
       producers.forEach(p => { producerMap[p.id] = p; });
+
+      if(filterStatus) list = list.filter(p=>p.status===filterStatus);
+      if(searchQuery){
+        list = list.filter(p => {
+          const prod = producerMap[p.producerId];
+          const prodName = prod ? prod.namaUsaha.toLowerCase() : '';
+          return (p.nama && p.nama.toLowerCase().includes(searchQuery)) ||
+                 (p.kategori && p.kategori.toLowerCase().includes(searchQuery)) ||
+                 prodName.includes(searchQuery);
+        });
+      }
+      list = list.sort((a,b)=>b.createdAt-a.createdAt);
 
       document.getElementById('produk-body').innerHTML = list.length ? list.map(p=>{
         const producer = producerMap[p.producerId];
         return `<tr>
           <td><div class="table-product"><div class="table-product-image"><img src="${UI.productImg(p.nama, p.foto)}" alt=""></div><div><strong>${p.nama}</strong></div></div></td>
-          <td>${producer ? producer.namaUsaha : '-'}</td>
-          <td>${p.kategori}</td>
-          <td>${UI.fmtRupiah(p.harga)}</td>
+          <td>${producer ? `<a href="produsen.html" style="color:var(--primary-dark);font-weight:600;text-decoration:none;" title="Lihat di Kelola Produsen">${producer.namaUsaha} &rarr;</a>` : '-'}</td>
+          <td><span style="font-size:0.85rem;background:var(--surface-soft);padding:0.2rem 0.5rem;border-radius:var(--radius-sm);">${p.kategori}</span></td>
+          <td><strong style="color:var(--primary);">${UI.fmtRupiah(p.harga)}</strong></td>
           <td><span class="status-badge ${badgeMap[p.status]}">${p.status}</span></td>
           <td class="table-action-column">
             <div class="table-actions">
@@ -104,7 +118,7 @@
             </div>
           </td>
         </tr>`;
-      }).join('') : `<tr><td colspan="6"><div class="empty-state"><h3>Tidak ada produk</h3><p>Tidak ada produk pada status ini.</p></div></td></tr>`;
+      }).join('') : `<tr><td colspan="6"><div class="empty-state"><h3>Tidak ada produk</h3><p>Tidak ada produk yang cocok dengan filter ini.</p></div></td></tr>`;
 
       document.querySelectorAll('[data-approve]').forEach(btn=> btn.addEventListener('click', async ()=>{
         btn.disabled = true;
@@ -149,22 +163,87 @@
     async function showDetail(id){
       const p = await D.getProductById(id);
       const producer = await D.getProducerById(p.producerId);
+      let waLink = '#';
+      if(producer && producer.whatsapp){
+        let clean = producer.whatsapp.replace(/[^0-9]/g, '');
+        if(clean.startsWith('0')) clean = '62' + clean.slice(1);
+        waLink = `https://wa.me/${clean}`;
+      }
+
       document.getElementById('detail-box').innerHTML = `
-        <div class="admin-modal-header"><h2>${p.nama}</h2><button type="button" class="modal-close" id="detail-close">&times;</button></div>
-        <div class="admin-form">
-          <div class="product-detail-info">
-            <div class="product-info-row"><span class="product-info-label">Produsen</span><span class="product-info-value">${producer?producer.namaUsaha:'-'}</span></div>
-            <div class="product-info-row"><span class="product-info-label">Kategori</span><span class="product-info-value">${p.kategori}</span></div>
-            <div class="product-info-row"><span class="product-info-label">Harga</span><span class="product-info-value">${UI.fmtRupiah(p.harga)}</span></div>
-            <div class="product-info-row"><span class="product-info-label">Ketersediaan</span><span class="product-info-value">${p.ketersediaan}</span></div>
+        <div class="admin-modal-header">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <div class="table-product-image" style="width:48px;height:48px;border-radius:var(--radius-sm);overflow:hidden;">
+              <img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div>
+              <h2 style="font-size:1.15rem;margin:0;">${p.nama}</h2>
+              <span class="status-badge ${badgeMap[p.status]}" style="margin-top:0.2rem;display:inline-block;">${p.status}</span>
+            </div>
           </div>
-          <p style="margin-top:1rem;">${p.deskripsi}</p>
-          <div class="admin-modal-actions"><button class="btn btn-outline" id="detail-close-2">Tutup</button></div>
+          <button type="button" class="modal-close" id="detail-close">&times;</button>
+        </div>
+        <div class="admin-form">
+          <div class="profile-meta-grid" style="margin-bottom:1rem;">
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">Produsen</div>
+              <div class="profile-meta-value">${producer ? `<a href="produsen.html" style="color:var(--primary);font-weight:700;">${producer.namaUsaha}</a>` : '-'}</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">Kategori</div>
+              <div class="profile-meta-value">${p.kategori}</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">Harga</div>
+              <div class="profile-meta-value" style="color:var(--primary);">${UI.fmtRupiah(p.harga)}</div>
+            </div>
+            <div class="profile-meta-item">
+              <div class="profile-meta-label">Ketersediaan</div>
+              <div class="profile-meta-value">${p.ketersediaan || 'Tersedia'}</div>
+            </div>
+            ${producer && producer.whatsapp ? `
+            <div class="profile-meta-item" style="grid-column:1/-1;">
+              <div class="profile-meta-label">Kontak Produsen</div>
+              <div class="profile-meta-value"><a href="${waLink}" target="_blank" style="color:var(--primary);">&#128172; Chat WhatsApp (${producer.whatsapp})</a></div>
+            </div>` : ''}
+          </div>
+          <div>
+            <div class="profile-meta-label" style="margin-bottom:0.25rem;">Deskripsi Produk</div>
+            <div style="background:var(--surface-soft);padding:0.75rem;border-radius:var(--radius-sm);font-size:0.88rem;line-height:1.5;">
+              ${p.deskripsi || '<em style="color:var(--text-muted);">Tidak ada deskripsi produk.</em>'}
+            </div>
+          </div>
+          ${p.status === 'REJECTED' && p.alasanTolak ? `
+            <div class="alert alert-danger" style="margin-top:1rem;">
+              <strong>Alasan Penolakan:</strong> ${p.alasanTolak}
+            </div>` : ''}
+          <div class="admin-modal-actions" style="margin-top:1.25rem;display:flex;justify-content:space-between;flex-direction:row;gap:0.5rem;">
+            <div>
+              ${p.status !== 'APPROVED' ? `<button class="btn btn-primary" id="detail-approve-prod-btn">&#10003; Setujui Produk</button>` : ''}
+            </div>
+            <button class="btn btn-outline" id="detail-close-2">Tutup</button>
+          </div>
         </div>`;
       detailModal.style.display = 'grid';
       const close = ()=> detailModal.style.display = 'none';
       document.getElementById('detail-close').addEventListener('click', close);
       document.getElementById('detail-close-2').addEventListener('click', close);
+
+      const approveProdBtn = document.getElementById('detail-approve-prod-btn');
+      if(approveProdBtn){
+        approveProdBtn.addEventListener('click', async ()=>{
+          close();
+          const all = await D.getProducts();
+          const idx = all.findIndex(x=>x.id===id);
+          if(idx > -1){
+            all[idx].status = 'APPROVED'; all[idx].alasanTolak = '';
+            const res = await D.saveProducts(all);
+            if(res && !res.ok){ UI.toast('Gagal menyetujui produk: ' + (res.message||''), 'danger'); return; }
+            UI.toast('Produk disetujui.');
+            await render();
+          }
+        });
+      }
     }
     detailModal.querySelector('.admin-modal-overlay').addEventListener('click', ()=> detailModal.style.display='none');
 
