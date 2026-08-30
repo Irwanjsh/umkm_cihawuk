@@ -260,6 +260,8 @@
       let msg = error.message;
       if(error.message && (error.message.includes('out of range') || error.message.includes('22003'))){
         msg = 'Harga yang dimasukkan melebihi batas angka maksimal sistem (maksimal Rp 1.000.000.000).';
+      } else if(error.message && error.message.toLowerCase().includes('row-level security')){
+        msg = 'Gagal menambahkan produk: Akun usaha Anda saat ini belum disetujui oleh Admin Desa (status masih PENDING atau belum aktif). Silakan hubungi admin desa untuk memverifikasi akun Anda terlebih dahulu.';
       }
       return { ok: false, message: msg };
     }

@@ -317,6 +317,12 @@ create policy "products_insert_self"
     )
   );
 
+create policy "products_insert_admin"
+  on public.products
+  for insert
+  to authenticated
+  with check (public.is_admin());
+
 -- ---- UPDATE ----
 create policy "products_update_self"
   on public.products
