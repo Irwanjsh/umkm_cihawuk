@@ -570,9 +570,9 @@ p {
   padding: 5rem 0 4.5rem;
   overflow: hidden;
   background-color: #0b1b14;
-  background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=75');
+  background-image: url('../tani.png');
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   color: #ffffff;
 }
 
@@ -580,17 +580,21 @@ p {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(11, 27, 20, 0.88) 0%, rgba(17, 43, 30, 0.78) 55%, rgba(11, 27, 20, 0.7) 100%);
+  background: linear-gradient(135deg, rgba(11, 27, 20, 0.75) 0%, rgba(17, 43, 30, 0.60) 55%, rgba(11, 27, 20, 0.55) 100%);
   z-index: 0;
 }
 
 .hero-content {
   position: relative;
   z-index: 1;
+  display: flex;
+  justify-content: center;
+  text-align: center;
 }
 
 .hero-text {
-  max-width: 720px;
+  max-width: 820px;
+  width: 100%;
 }
 
 .hero-eyebrow {
@@ -634,7 +638,7 @@ p {
 
 .hero-description {
   max-width: 620px;
-  margin-bottom: 1.75rem;
+  margin: 0 auto 1.75rem auto;
   color: rgba(255, 255, 255, 0.82);
   font-size: 1rem;
   line-height: 1.65;
@@ -645,6 +649,7 @@ p {
   flex-wrap: wrap;
   gap: 0.85rem;
   margin-bottom: 2rem;
+  justify-content: center;
 }
 
 .btn-hero-primary {
@@ -689,6 +694,7 @@ p {
   gap: 1.25rem;
   padding-top: 1.25rem;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
+  justify-content: center;
 }
 
 .hero-badge-item {
