@@ -44,8 +44,8 @@
       <div class="form-group">
         <label>Foto Produk</label>
         <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-          <div style="width:72px;height:72px;flex-shrink:0;border-radius:var(--radius-sm);overflow:hidden;background:var(--border-dark);display:flex;align-items:center;justify-content:center;">
-            <img id="edit-foto-preview" src="" alt="Foto produk" style="display:none;width:100%;height:100%;object-fit:cover;">
+          <div style="width:76px;height:76px;flex-shrink:0;border-radius:var(--radius-sm);overflow:hidden;background:#f0fdf4;border:1.5px dashed #86efac;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);">
+            <img id="edit-foto-preview" src="" alt="Foto produk" style="width:100%;height:100%;object-fit:cover;">
           </div>
           <div style="flex:1;min-width:180px;">
             <input type="file" id="edit-foto-input" accept="image/jpeg,image/png,image/webp">
@@ -133,7 +133,11 @@
     document.getElementById('edit-foto-input').addEventListener('change', (e)=>{
       const file = e.target.files[0];
       fotoError.style.display = 'none';
-      if(!file) return;
+      if(!file){
+        selectedFile = null;
+        fotoPreview.src = editingOldFoto ? editingOldFoto : UI.productImg('');
+        return;
+      }
 
       const check = window.CihawukStorage.validateImageFile(file);
       if(!check.valid){
@@ -141,11 +145,11 @@
         fotoError.style.display = 'block';
         e.target.value = '';
         selectedFile = null;
+        fotoPreview.src = editingOldFoto ? editingOldFoto : UI.productImg('');
         return;
       }
       selectedFile = file;
       fotoPreview.src = URL.createObjectURL(file);
-      fotoPreview.style.display = 'block';
     });
 
     const modal = document.getElementById('edit-modal');
@@ -162,13 +166,7 @@
       selectedFile = null;
       fotoError.style.display = 'none';
       document.getElementById('edit-foto-input').value = '';
-      if(editingOldFoto){
-        fotoPreview.src = editingOldFoto;
-        fotoPreview.style.display = 'block';
-      } else {
-        fotoPreview.src = '';
-        fotoPreview.style.display = 'none';
-      }
+      fotoPreview.src = UI.productImg(p.nama, editingOldFoto);
       modal.style.display = 'grid';
     }
     function closeEdit(){ modal.style.display = 'none'; }

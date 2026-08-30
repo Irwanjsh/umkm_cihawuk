@@ -31,7 +31,24 @@
     return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
 
-  function productImg(nama, url){ return url || phImg((nama||'?').charAt(0).toUpperCase()); }
+  // Default Product Photo Placeholder (Harvest basket/product & upload camera symbol)
+  function defaultProductImg(bg, fg){
+    bg = bg || '#f0fdf4';
+    fg = fg || '#16a34a';
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'>`+
+      `<rect width='120' height='120' rx='16' fill='${bg}'/>`+
+      `<path d='M36 44 L84 44 L80 92 C80 94.2 78.2 96 76 96 L44 96 C41.8 96 40 94.2 40 92 Z' fill='#dcfce7' stroke='${fg}' stroke-width='4' stroke-linejoin='round'/>`+
+      `<path d='M48 44 C48 34 52 26 60 26 C68 26 72 34 72 44' fill='none' stroke='${fg}' stroke-width='4' stroke-linecap='round'/>`+
+      `<path d='M60 56 C68 56 74 62 74 70 C74 78 66 84 60 84 C60 76 56 68 50 64 C50 58 56 56 60 56 Z' fill='${fg}'/>`+
+      `<path d='M58 82 Q64 72 72 64' fill='none' stroke='#bbf7d0' stroke-width='2' stroke-linecap='round'/>`+
+      `<circle cx='86' cy='86' r='16' fill='${fg}' stroke='#ffffff' stroke-width='3'/>`+
+      `<path d='M80 84 L82 81 L90 81 L92 84 L95 84 C96 84 97 85 97 86 L97 92 C97 93 96 94 95 94 L77 94 C76 94 75 93 75 92 L75 86 C75 85 76 84 77 84 Z' fill='#ffffff'/>`+
+      `<circle cx='86' cy='88' r='3' fill='${fg}'/>`+
+      `</svg>`;
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
+  }
+
+  function productImg(nama, url){ return url || defaultProductImg(); }
   function farmerImg(nama, url){ return url || defaultAvatarImg(); }
   function avatarImg(url){ return url || defaultAvatarImg(); }
 
@@ -183,5 +200,5 @@
     initPasswordToggles();
   }
 
-  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, avatarImg, defaultAvatarImg, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
+  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, avatarImg, defaultAvatarImg, defaultProductImg, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
 })();

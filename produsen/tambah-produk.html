@@ -27,8 +27,8 @@
               <div class="form-group">
                 <label>Foto Produk</label>
                 <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-                  <div style="width:88px;height:88px;flex-shrink:0;border-radius:var(--radius-sm);overflow:hidden;background:var(--border-dark);display:flex;align-items:center;justify-content:center;">
-                    <img id="foto-preview" src="" alt="Foto produk" style="display:none;width:100%;height:100%;object-fit:cover;">
+                  <div style="width:88px;height:88px;flex-shrink:0;border-radius:var(--radius-sm);overflow:hidden;background:#f0fdf4;border:1.5px dashed #86efac;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);">
+                    <img id="foto-preview" src="" alt="Preview produk" style="width:100%;height:100%;object-fit:cover;">
                   </div>
                   <div style="flex:1;min-width:200px;">
                     <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp">
@@ -65,7 +65,7 @@
   const producer = await window.CihawukAuth.requireProducerAuth();
   if(producer){
     window.CihawukDashNav.renderShell({role:'produsen', activeKey:'tambah', name:producer.nama_usaha, avatarUrl:producer.foto_path, pageTitle:'Tambah Produk'});
-    const D = window.CihawukData;
+    const D = window.CihawukData, UI = window.CihawukUI;
 
     const katSelect = document.getElementById('kategori');
     katSelect.innerHTML = '<option value="" disabled selected>Pilih kategori</option>' +
@@ -76,10 +76,16 @@
     const fotoError = document.getElementById('foto-error');
     const submitError = document.getElementById('tambah-error');
 
+    fotoPreview.src = UI.productImg('');
+
     document.getElementById('foto-input').addEventListener('change', (e)=>{
       const file = e.target.files[0];
       fotoError.style.display = 'none';
-      if(!file) return;
+      if(!file){
+        selectedFile = null;
+        fotoPreview.src = UI.productImg('');
+        return;
+      }
 
       const check = window.CihawukStorage.validateImageFile(file);
       if(!check.valid){
@@ -87,11 +93,11 @@
         fotoError.style.display = 'block';
         e.target.value = '';
         selectedFile = null;
+        fotoPreview.src = UI.productImg('');
         return;
       }
       selectedFile = file;
       fotoPreview.src = URL.createObjectURL(file);
-      fotoPreview.style.display = 'block';
     });
 
     document.getElementById('tambah-form').addEventListener('submit', async (e)=>{
