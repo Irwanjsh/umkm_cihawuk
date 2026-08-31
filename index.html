@@ -138,11 +138,13 @@
     </a>`).join('') : `<div class="empty-state"><div class="empty-state-icon">&#128101;</div><h3>Belum ada produsen aktif</h3></div>`;
 
   const totalProdusen = (await D.getActiveProducers()).length;
-  const totalProduk = (await D.getApprovedProductsForCatalog()).length;
+  const allApproved = await D.getApprovedProductsForCatalog();
+  const totalProduk = allApproved.length;
+  const usedKategori = new Set(allApproved.map(p => p.kategori)).size;
   document.getElementById('home-stats').innerHTML = `
     <div class="stat-card"><div class="stat-card-icon">&#128101;</div><div class="stat-card-content"><span>Produsen Aktif</span><strong>${totalProdusen}</strong></div></div>
     <div class="stat-card"><div class="stat-card-icon">&#128715;</div><div class="stat-card-content"><span>Produk Tersedia</span><strong>${totalProduk}</strong></div></div>
-    <div class="stat-card"><div class="stat-card-icon">&#127991;</div><div class="stat-card-content"><span>Kategori Usaha</span><strong>${D.KATEGORI_USAHA.length}</strong></div></div>
+    <div class="stat-card"><div class="stat-card-icon">&#127991;</div><div class="stat-card-content"><span>Kategori Usaha</span><strong>${usedKategori || D.KATEGORI_USAHA.length}</strong></div></div>
     <div class="stat-card"><div class="stat-card-icon">&#127811;</div><div class="stat-card-content"><span>Desa</span><strong>1</strong></div></div>`;
 })();
 </script>
