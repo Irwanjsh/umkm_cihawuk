@@ -37,8 +37,15 @@
   const D = window.CihawukData, UI = window.CihawukUI;
 
   const id = new URLSearchParams(location.search).get('id');
-  const producer = await D.getProducerById(id);
   const container = document.getElementById('prod-container');
+  container.innerHTML = `
+    <div class="loading-spinner-wrap">
+      <div class="loading-spinner"></div>
+      <p>Memuat profil produsen...</p>
+    </div>
+  `;
+
+  const producer = await D.getProducerById(id);
 
   if(!producer || producer.status !== 'ACTIVE'){
     container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128683;</div>

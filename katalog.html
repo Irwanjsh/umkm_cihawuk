@@ -62,9 +62,16 @@
   }
 
   async function renderGrid(){
+    const grid = document.getElementById('catalog-grid');
+    grid.innerHTML = `
+      <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+      <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+      <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+      <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+    `;
     const results = await D.getApprovedProductsForCatalog({search:state.search, kategori:state.kategori});
     document.getElementById('result-count').innerHTML = `<strong>${results.length}</strong> produk ditemukan`;
-    document.getElementById('catalog-grid').innerHTML = results.length ? results.map(p=>{
+    grid.innerHTML = results.length ? results.map(p=>{
       return `<a href="produk-detail.html?id=${p.id}" class="product-card">
         <div class="product-card-image">
           <img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}">
@@ -77,7 +84,7 @@
           <div class="product-price">${UI.fmtRupiah(p.harga)}</div>
         </div>
       </a>`;
-    }).join('') : `<div class="empty-state catalog-empty"><div class="empty-state-icon">&#128269;</div><h3>Tidak ditemukan</h3><p>Tidak ada produk yang cocok dengan pencarian Anda.</p></div>`;
+    }).join('') : `<div class="empty-state catalog-empty" style="grid-column: 1 / -1;"><div class="empty-state-icon">&#128269;</div><h3>Tidak ditemukan</h3><p>Tidak ada produk yang cocok dengan pencarian Anda.</p></div>`;
   }
 
   document.getElementById('search-input').addEventListener('input', async (e)=>{ state.search = e.target.value; await renderGrid(); });

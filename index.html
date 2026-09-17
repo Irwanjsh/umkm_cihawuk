@@ -106,8 +106,32 @@
     heroImg.src = UI.phImg('TC', '#2f7d32', '#ffffff');
   }
 
-  const featured = (await D.getApprovedProductsForCatalog()).slice(0,4);
-  document.getElementById('home-featured-products').innerHTML = featured.length ? featured.map(p => {
+  const featuredContainer = document.getElementById('home-featured-products');
+  featuredContainer.innerHTML = `
+    <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+    <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+    <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+    <div class="product-card skeleton-loading" style="height:280px;border-radius:var(--radius-md);opacity:0.6;"></div>
+  `;
+
+  const producersContainer = document.getElementById('home-producers');
+  producersContainer.innerHTML = `
+    <div class="farmer-card skeleton-loading" style="height:120px;border-radius:var(--radius-md);opacity:0.6;"></div>
+    <div class="farmer-card skeleton-loading" style="height:120px;border-radius:var(--radius-md);opacity:0.6;"></div>
+    <div class="farmer-card skeleton-loading" style="height:120px;border-radius:var(--radius-md);opacity:0.6;"></div>
+  `;
+
+  document.getElementById('home-categories').innerHTML = D.KATEGORI_USAHA.map(k =>
+    `<a href="katalog.html?kategori=${encodeURIComponent(k)}" class="filter-button">${k}</a>`
+  ).join('');
+
+  const [allApproved, activeProducers] = await Promise.all([
+    D.getApprovedProductsForCatalog(),
+    D.getActiveProducers()
+  ]);
+
+  const featured = allApproved.slice(0,4);
+  featuredContainer.innerHTML = featured.length ? featured.map(p => {
     return `<a href="produk-detail.html?id=${p.id}" class="product-card">
       <div class="product-card-image">
         <img src="${UI.productImg(p.nama, p.foto)}" alt="${p.nama}">
@@ -120,14 +144,10 @@
         <div class="product-price">${UI.fmtRupiah(p.harga)}</div>
       </div>
     </a>`;
-  }).join('') : `<div class="empty-state"><div class="empty-state-icon">&#128715;</div><h3>Belum ada produk</h3><p>Belum ada produk yang disetujui admin.</p></div>`;
+  }).join('') : `<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-icon">&#128715;</div><h3>Belum ada produk</h3><p>Belum ada produk yang disetujui admin.</p></div>`;
 
-  document.getElementById('home-categories').innerHTML = D.KATEGORI_USAHA.map(k =>
-    `<a href="katalog.html?kategori=${encodeURIComponent(k)}" class="filter-button">${k}</a>`
-  ).join('');
-
-  const producers = (await D.getActiveProducers()).slice(0,3);
-  document.getElementById('home-producers').innerHTML = producers.length ? producers.map(p => `
+  const producers = activeProducers.slice(0,3);
+  producersContainer.innerHTML = producers.length ? producers.map(p => `
     <a href="produsen.html?id=${p.id}" class="farmer-card">
       <div class="farmer-avatar"><img src="${UI.farmerImg(p.namaUsaha, p.foto)}" alt="${p.namaUsaha}"></div>
       <div class="farmer-info">
@@ -135,10 +155,9 @@
         <div class="farmer-location">${p.kategori}</div>
         <div class="stamp-verified">&#10003; Produsen Terverifikasi</div>
       </div>
-    </a>`).join('') : `<div class="empty-state"><div class="empty-state-icon">&#128101;</div><h3>Belum ada produsen aktif</h3></div>`;
+    </a>`).join('') : `<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-icon">&#128101;</div><h3>Belum ada produsen aktif</h3></div>`;
 
-  const totalProdusen = (await D.getActiveProducers()).length;
-  const allApproved = await D.getApprovedProductsForCatalog();
+  const totalProdusen = activeProducers.length;
   const totalProduk = allApproved.length;
   const usedKategori = new Set(allApproved.map(p => p.kategori)).size;
   document.getElementById('home-stats').innerHTML = `

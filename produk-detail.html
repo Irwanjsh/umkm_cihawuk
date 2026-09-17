@@ -31,8 +31,15 @@
   const D = window.CihawukData, UI = window.CihawukUI;
 
   const id = new URLSearchParams(location.search).get('id');
-  const product = await D.getProductById(id);
   const container = document.getElementById('pd-container');
+  container.innerHTML = `
+    <div class="loading-spinner-wrap">
+      <div class="loading-spinner"></div>
+      <p>Memuat informasi produk...</p>
+    </div>
+  `;
+
+  const product = await D.getProductById(id);
 
   if(!product || product.status !== 'APPROVED'){
     container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128683;</div>
