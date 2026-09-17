@@ -125,7 +125,15 @@
 
       const namaUsahaVal = document.getElementById('namaUsaha').value.trim();
       const namaLengkapVal = document.getElementById('namaLengkap').value.trim();
-      const whatsappVal = document.getElementById('whatsapp').value.trim();
+      let whatsappVal = document.getElementById('whatsapp').value.trim();
+      if(UI.normalizeWhatsApp){
+        whatsappVal = UI.normalizeWhatsApp(whatsappVal);
+      }
+      if(!whatsappVal || whatsappVal.length < 9 || whatsappVal.length > 15){
+        UI.toast('Nomor WhatsApp tidak valid. Masukkan nomor yang benar (contoh: 08123456789 atau 628123456789).', 'danger');
+        submitBtn.disabled = false;
+        return;
+      }
       const kategoriVal = document.getElementById('kategori').value;
       const alamatVal = document.getElementById('alamat').value.trim();
       const deskripsiVal = document.getElementById('deskripsi').value.trim();

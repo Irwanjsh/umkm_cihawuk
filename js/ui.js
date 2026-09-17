@@ -48,6 +48,17 @@
     return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
 
+  function normalizeWhatsApp(num){
+    if(!num) return '';
+    let digits = String(num).replace(/[^0-9]/g, '');
+    if(digits.startsWith('0')){
+      digits = '62' + digits.slice(1);
+    } else if(digits.startsWith('8')){
+      digits = '62' + digits;
+    }
+    return digits;
+  }
+
   function productImg(nama, url){ return url || defaultProductImg(); }
   function farmerImg(nama, url){ return url || defaultAvatarImg(); }
   function avatarImg(url){ return url || defaultAvatarImg(); }
@@ -218,5 +229,5 @@
     initPasswordToggles();
   }
 
-  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, avatarImg, defaultAvatarImg, defaultProductImg, formatKetersediaan, ketersediaanBadge, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
+  window.CihawukUI = { fmtRupiah, initial, phImg, productImg, farmerImg, avatarImg, defaultAvatarImg, defaultProductImg, formatKetersediaan, ketersediaanBadge, normalizeWhatsApp, toast, renderPublicNav, renderPublicFooter, initPasswordToggles };
 })();

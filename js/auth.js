@@ -132,7 +132,15 @@
   async function registerProducer(data){
     const email = normalizeEmail(data.email);
 
-    if(!email || !data.password || !data.namaLengkap || !data.namaUsaha || !data.whatsapp || !data.alamat || !data.deskripsi || !data.kategori){
+    let cleanWa = (data.whatsapp || '').replace(/[^0-9]/g, '');
+    if(cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.slice(1);
+    else if(cleanWa.startsWith('8')) cleanWa = '62' + cleanWa;
+
+    if(!cleanWa || cleanWa.length < 9 || cleanWa.length > 15){
+      return { ok:false, message:'Nomor WhatsApp tidak valid. Masukkan nomor yang benar (contoh: 08123456789 atau 628123456789).' };
+    }
+
+    if(!email || !data.password || !data.namaLengkap || !data.namaUsaha || !data.alamat || !data.deskripsi || !data.kategori){
       return { ok:false, message:'Harap lengkapi semua kolom pendaftaran yang wajib diisi.' };
     }
 
@@ -183,7 +191,7 @@
         nama_lengkap: data.namaLengkap,
         nama_usaha: data.namaUsaha,
         email: email,
-        whatsapp: data.whatsapp,
+        whatsapp: cleanWa,
         alamat: data.alamat,
         kategori: data.kategori,
         deskripsi: data.deskripsi,

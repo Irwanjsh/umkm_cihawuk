@@ -66,7 +66,7 @@
               <div class="product-info-row"><span class="product-info-label">Pemilik</span><span class="product-info-value">${producer.namaLengkap}</span></div>
               <div class="product-info-row"><span class="product-info-label">Alamat</span><span class="product-info-value">${producer.alamat}</span></div>
             </div>
-            <a href="https://wa.me/${producer.whatsapp}?text=${encodeURIComponent('Halo ' + producer.namaUsaha + ', saya melihat profil usaha Anda di Tani Cihawuk.')}" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:1rem;">Hubungi via WhatsApp</a>
+            <a href="https://wa.me/${UI.normalizeWhatsApp ? UI.normalizeWhatsApp(producer.whatsapp) : producer.whatsapp}?text=${encodeURIComponent('Halo ' + producer.namaUsaha + ', saya melihat profil usaha Anda di Tani Cihawuk.')}" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:1rem;">Hubungi via WhatsApp</a>
           </div>
         </div>
       </div>`;

@@ -55,7 +55,7 @@
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label for="edit-harga">Harga (Rp)</label><input type="number" id="edit-harga" required min="0"></div>
+        <div class="form-group"><label for="edit-harga">Harga (Rp)</label><input type="number" id="edit-harga" required min="0" max="1000000000"></div>
         <div class="form-group">
           <label for="edit-ketersediaan">Status Ketersediaan</label>
           <select id="edit-ketersediaan">
@@ -200,6 +200,11 @@
       e.preventDefault();
       fotoError.style.display = 'none';
       const id = document.getElementById('edit-id').value;
+      const hargaVal = Number(document.getElementById('edit-harga').value);
+      if(isNaN(hargaVal) || hargaVal < 0 || hargaVal > 1000000000){
+        UI.toast('Harga tidak valid atau melebihi batas maksimal (Rp 1.000.000.000).', 'danger');
+        return;
+      }
 
       let newFotoUrl = null;
       if(selectedFile){
