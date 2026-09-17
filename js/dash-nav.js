@@ -125,6 +125,11 @@
         <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-label="Buka menu">&#9776;</button>
         <div class="admin-topbar-title">${pageTitle || ''}</div>
         <div class="admin-topbar-actions">
+          ${!isAdmin ? `
+          <a href="tambah-produk.html" class="btn btn-primary btn-sm topbar-add-product-btn" title="Tambah Produk Baru">
+            <span style="font-size:1.15rem;font-weight:700;line-height:1;margin-right:2px;">&#65291;</span>
+            <span class="btn-text">Tambah Produk</span>
+          </a>` : ''}
           ${isAdmin ? `
           <div class="topbar-notif-wrap" id="topbar-notif-wrap" style="display:none;">
             <a href="pengajuan-produsen.html" class="topbar-notif-btn" id="topbar-notif-btn" title="Notifikasi Menunggu Persetujuan">
