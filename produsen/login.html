@@ -25,7 +25,7 @@
       <div id="login-status"></div>
 
       <form id="login-form" class="admin-login-form">
-        <div class="form-group"><label for="email">Email</label><input type="email" id="email" required placeholder="nama@email.com"></div>
+        <div class="form-group"><label for="email">Email / Username</label><input type="email" id="email" required placeholder="nama@email.com" autocomplete="username"></div>
         <div class="form-group">
           <label for="password">Kata Sandi</label>
           <input type="password" id="password" required placeholder="Kata sandi Anda">
@@ -38,7 +38,7 @@
         </div>
         <div class="login-options">
           <span></span>
-          <a href="#" id="lupa-password-link" class="forgot-password">Lupa password?</a>
+          <a href="#" id="lupa-password-link" class="forgot-password">Butuh bantuan login?</a>
         </div>
         <button type="submit" class="btn btn-primary btn-block">Login</button>
       </form>
@@ -91,7 +91,17 @@
 
   document.getElementById('lupa-password-link').addEventListener('click', (e)=>{
     e.preventDefault();
-    alert('Untuk reset atau bantuan kata sandi, silakan hubungi Administrator Tani Cihawuk.');
+    const emailInput = document.getElementById('email').value.trim();
+    const adminWA = '6288991385646';
+    let pesan = `Halo Admin Tani Cihawuk, saya lupa kata sandi akun produsen saya.`;
+    if(emailInput){
+      pesan += `\nEmail / ID akun saya: ${emailInput}`;
+    } else {
+      pesan += `\nMohon bantuannya untuk reset kata sandi akun saya.`;
+    }
+    pesan += `\nMohon bantuan untuk reset / pembuatan kata sandi baru. Terima kasih.`;
+    const waUrl = `https://wa.me/${adminWA}?text=${encodeURIComponent(pesan)}`;
+    window.open(waUrl, '_blank');
   });
 })();
 </script>

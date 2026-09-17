@@ -25,7 +25,7 @@
       <div id="login-status"></div>
 
       <form id="admin-login-form" class="admin-login-form">
-        <div class="form-group"><label for="email">Email</label><input type="email" id="email" required placeholder="admin@cihawuk.desa"></div>
+        <div class="form-group"><label for="email">Email / Username</label><input type="email" id="email" required placeholder="admin@cihawuk.desa" autocomplete="username"></div>
         <div class="form-group">
           <label for="password">Kata Sandi</label>
           <input type="password" id="password" required placeholder="Kata sandi administrator">
@@ -41,6 +41,8 @@
 
       <div class="admin-login-footer">
         <a href="../index.html" class="forgot-password">&larr; Kembali ke situs publik</a>
+        <span style="margin-left:1rem;">|</span>
+        <a href="#" id="admin-bantuan-link" class="forgot-password">Butuh bantuan login?</a>
       </div>
     </div>
   </div>
@@ -66,6 +68,21 @@
       return;
     }
     window.location.href = 'dashboard.html';
+  });
+
+  document.getElementById('admin-bantuan-link').addEventListener('click', (e)=>{
+    e.preventDefault();
+    const emailInput = document.getElementById('email').value.trim();
+    const adminWA = '6288991385646';
+    let pesan = `Halo Admin Tani Cihawuk, saya lupa kata sandi akun administrator saya.`;
+    if(emailInput){
+      pesan += `\nEmail akun saya: ${emailInput}`;
+    } else {
+      pesan += `\nMohon bantuannya untuk reset kata sandi akun saya.`;
+    }
+    pesan += `\nMohon bantuan untuk reset / pembuatan kata sandi baru. Terima kasih.`;
+    const waUrl = `https://wa.me/${adminWA}?text=${encodeURIComponent(pesan)}`;
+    window.open(waUrl, '_blank');
   });
 })();
 </script>

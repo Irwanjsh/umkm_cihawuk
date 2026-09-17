@@ -104,6 +104,48 @@
   </div>
 </div>
 
+<!-- MODAL RESET PASSWORD PRODUSEN -->
+<div class="admin-modal" id="reset-pwd-modal" style="display:none;">
+  <div class="admin-modal-overlay"></div>
+  <div class="admin-modal-content admin-modal-small">
+    <div class="admin-modal-header">
+      <h2>Reset Kata Sandi Produsen</h2>
+      <button type="button" class="modal-close" id="reset-pwd-close">&times;</button>
+    </div>
+    <div class="admin-form">
+      <div style="background:var(--surface-soft);padding:0.75rem 1rem;border-radius:var(--radius-sm);margin-bottom:1.25rem;font-size:0.85rem;line-height:1.5;">
+        <div>Produsen: <strong id="reset-pwd-target-name">-</strong></div>
+        <div>Email / ID Login: <strong id="reset-pwd-target-email">-</strong></div>
+      </div>
+
+      <div class="form-group">
+        <label for="reset-pwd-new">Kata Sandi Baru</label>
+        <div style="display:flex;gap:0.5rem;">
+          <input type="text" id="reset-pwd-new" required minlength="6" placeholder="Minimal 6 karakter" style="flex:1;">
+          <button type="button" class="btn btn-outline btn-sm" id="reset-pwd-random-btn" title="Buat sandi acak otomatis" style="white-space:nowrap;">Acak Sandi</button>
+        </div>
+        <span class="form-help">Catat sandi baru ini sebelum diberikan ke produsen.</span>
+      </div>
+
+      <div id="reset-pwd-result-box" style="display:none;margin-bottom:1rem;" class="alert alert-success">
+        <div>
+          <strong>Sandi Baru Tersimpan:</strong>
+          <div style="font-size:1.1rem;font-weight:700;margin:0.25rem 0;" id="reset-pwd-display">-</div>
+          <p style="font-size:0.82rem;margin-bottom:0.6rem;">Kirimkan kata sandi baru ini langsung ke WhatsApp produsen:</p>
+          <a href="#" target="_blank" class="btn btn-sm btn-primary" id="reset-pwd-wa-btn" style="background:#25d366;border-color:#25d366;color:#ffffff;display:inline-flex;align-items:center;gap:0.4rem;">
+            <span>&#128172;</span> Kirim Sandi via WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <div class="admin-modal-actions">
+        <button type="button" class="btn btn-outline" id="reset-pwd-cancel">Tutup</button>
+        <button type="button" class="btn btn-primary" id="reset-pwd-submit">Simpan Sandi Baru</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 <script src="../js/data.js"></script>
@@ -197,6 +239,7 @@
           <td class="table-action-column">
             <div class="table-actions">
               <button class="table-action-button" data-profile="${p.id}" title="Lihat Profil & Produk">&#128065;</button>
+              <button class="table-action-button" data-reset-pwd="${p.id}" title="Reset Kata Sandi Akun">&#128273;</button>
               <button class="table-action-button" data-edit="${p.id}" title="Edit Data Produsen">&#9998;</button>
               ${p.status==='ACTIVE' ? `<button class="table-action-button delete-farmer" data-suspend="${p.id}" title="Nonaktifkan">&#9209;</button>` : ''}
               ${p.status==='SUSPENDED' ? `<button class="table-action-button" data-activate="${p.id}" title="Aktifkan Kembali">&#9654;</button>` : ''}
@@ -253,6 +296,15 @@
         e.stopPropagation();
         await openEdit(btn.dataset.edit);
       }));
+
+      // Event listeners for reset password in table
+      document.querySelectorAll('[data-reset-pwd]').forEach(btn=>{
+        btn.addEventListener('click', async (e)=>{
+          e.stopPropagation();
+          const p = await D.getProducerById(btn.dataset.resetPwd);
+          if(p) openResetPwdModal(p);
+        });
+      });
     }
 
     async function setStatus(id, status){
@@ -326,6 +378,9 @@
               </a>
               <button class="btn btn-sm btn-outline" id="modal-edit-btn" style="display:inline-flex;align-items:center;gap:0.4rem;">
                 <span>&#9998;</span> Edit
+              </button>
+              <button class="btn btn-sm btn-outline" id="modal-reset-pwd-btn" style="display:inline-flex;align-items:center;gap:0.4rem;color:#b45309;border-color:#fcd34d;">
+                <span>&#128273;</span> Reset Sandi
               </button>
             </div>
           </div>
@@ -473,6 +528,16 @@
         await openEdit(id);
       });
 
+      // Reset password from modal
+      const modalResetBtn = document.getElementById('modal-reset-pwd-btn');
+      if(modalResetBtn){
+        modalResetBtn.addEventListener('click', async ()=>{
+          closeProfile();
+          const prod = await D.getProducerById(id);
+          if(prod) openResetPwdModal(prod);
+        });
+      }
+
       // Quick Status Change from modal
       const suspendBtn = document.getElementById('modal-suspend-btn');
       if(suspendBtn) suspendBtn.addEventListener('click', async ()=>{ await setStatus(id, 'SUSPENDED'); });
@@ -602,6 +667,91 @@
         await render();
       }
     });
+
+    // RESET PASSWORD MODAL LOGIC
+    const resetPwdModal = document.getElementById('reset-pwd-modal');
+    let resetPwdTargetProducer = null;
+
+    function openResetPwdModal(producer){
+      resetPwdTargetProducer = producer;
+      document.getElementById('reset-pwd-target-name').textContent = producer.namaUsaha;
+      document.getElementById('reset-pwd-target-email').textContent = producer.email;
+      document.getElementById('reset-pwd-new').value = '';
+      document.getElementById('reset-pwd-result-box').style.display = 'none';
+      document.getElementById('reset-pwd-submit').textContent = 'Simpan Sandi Baru';
+      document.getElementById('reset-pwd-submit').disabled = false;
+      resetPwdModal.style.display = 'grid';
+    }
+
+    function closeResetPwdModal(){
+      resetPwdModal.style.display = 'none';
+      resetPwdTargetProducer = null;
+    }
+
+    function generateRandomPassword(){
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+      let pwd = '';
+      for(let i=0;i<10;i++) pwd += chars.charAt(Math.floor(Math.random()*chars.length));
+      return pwd;
+    }
+
+    document.getElementById('reset-pwd-random-btn').addEventListener('click', ()=>{
+      document.getElementById('reset-pwd-new').value = generateRandomPassword();
+    });
+
+    document.getElementById('reset-pwd-submit').addEventListener('click', async ()=>{
+      const newPwd = document.getElementById('reset-pwd-new').value.trim();
+      if(!newPwd || newPwd.length < 6){
+        UI.toast('Kata sandi minimal 6 karakter.', 'warning');
+        return;
+      }
+      if(!resetPwdTargetProducer) return;
+
+      const targetUserId = resetPwdTargetProducer.userId || resetPwdTargetProducer.id;
+      const btn = document.getElementById('reset-pwd-submit');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      // Panggil Supabase RPC untuk update password
+      const result = await window.CihawukAuth.adminResetProducerPassword(targetUserId, newPwd);
+
+      btn.disabled = false;
+      btn.textContent = 'Simpan Sandi Baru';
+
+      if(result && !result.ok){
+        // Jika fungsi RPC belum dibuat di Supabase SQL Editor atau error RLS
+        UI.toast('Gagal update otomatis via database: ' + (result.message || 'Cek fungsi RPC Supabase'), 'danger');
+        console.warn('[Reset Password Error]', result.message);
+        // Tetap tampilkan agar admin bisa copy jika diperlukan
+        document.getElementById('reset-pwd-display').textContent = newPwd;
+        document.getElementById('reset-pwd-result-box').style.display = 'block';
+      } else {
+        UI.toast('Kata sandi baru berhasil diperbarui di database!', 'success');
+        document.getElementById('reset-pwd-display').textContent = newPwd;
+        document.getElementById('reset-pwd-result-box').style.display = 'block';
+      }
+
+      // Setup tombol kirim WA dengan pesan yang rapi
+      const waBtn = document.getElementById('reset-pwd-wa-btn');
+      const cleanWA = UI.normalizeWhatsApp(resetPwdTargetProducer.whatsapp || '');
+      const loginUrl = `${window.location.origin}/produsen/login.html`;
+      const pesan = `Halo ${resetPwdTargetProducer.namaUsaha},\n\nKata sandi akun Tani Cihawuk Anda telah diperbarui oleh Admin BUMDes.\n\nKata Sandi Baru: ${newPwd}\n\nSilakan login kembali di:\n${loginUrl}\n\nMohon simpan kata sandi ini dengan aman.`;
+      waBtn.href = `https://wa.me/${cleanWA}?text=${encodeURIComponent(pesan)}`;
+    });
+
+    document.getElementById('reset-pwd-cancel').addEventListener('click', closeResetPwdModal);
+    document.getElementById('reset-pwd-close').addEventListener('click', closeResetPwdModal);
+    resetPwdModal.querySelector('.admin-modal-overlay').addEventListener('click', closeResetPwdModal);
+
+    // Buka modal reset pwd dari tabel
+    document.querySelectorAll('[data-reset-pwd]').forEach(btn=>{
+      btn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const p = await D.getProducerById(btn.dataset.resetPwd);
+        if(p) openResetPwdModal(p);
+      });
+    });
+
 
     await render();
   }

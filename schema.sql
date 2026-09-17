@@ -387,3 +387,44 @@ $$;
 create trigger trg_products_protect_fields
   before update on public.products
   for each row execute function public.protect_product_sensitive_fields();
+
+
+-- ============================================================
+-- 5. RPC ADMIN: Reset Kata Sandi User (Auth)
+--    Hanya admin terautentikasi (public.is_admin()) yang diizinkan.
+--    Memperbarui password di auth.users dengan bcrypt salt.
+-- ============================================================
+create or replace function public.admin_reset_user_password(
+  target_user_id uuid,
+  new_password text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, extensions
+as $$
+begin
+  -- Pastikan hanya admin yang dapat menjalankan fungsi ini
+  if not public.is_admin() then
+    raise exception 'Akses ditolak: Hanya admin yang dapat mereset sandi pengguna.';
+  end if;
+
+  if length(new_password) < 6 then
+    raise exception 'Kata sandi minimal 6 karakter.';
+  end if;
+
+  -- Update encrypted password di auth.users
+  update auth.users
+  set encrypted_password = extensions.crypt(new_password, extensions.gen_salt('bf')),
+      updated_at = now()
+  where id = target_user_id;
+
+  if not found then
+    raise exception 'Pengguna tidak ditemukan.';
+  end if;
+end;
+$$;
+
+revoke execute on function public.admin_reset_user_password(uuid, text) from public;
+grant execute on function public.admin_reset_user_password(uuid, text) to authenticated;
+

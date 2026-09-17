@@ -324,9 +324,30 @@
     return session;
   }
 
+  // -----------------------------------------------------------
+  // adminResetProducerPassword(userId, newPassword)
+  // Mereset kata sandi produsen melalui Supabase RPC.
+  // Membutuhkan stored procedure 'admin_reset_user_password' di DB
+  // (lihat schema.sql atau instruksi setup di panel admin).
+  // Hanya bisa dipanggil oleh admin yang sedang login.
+  // -----------------------------------------------------------
+  async function adminResetProducerPassword(userId, newPassword){
+    try {
+      const { error } = await client.rpc('admin_reset_user_password', {
+        target_user_id: userId,
+        new_password: newPassword
+      });
+      if(error) return { ok: false, message: error.message };
+      return { ok: true };
+    } catch(e) {
+      return { ok: false, message: e.message || 'Terjadi kesalahan tidak terduga.' };
+    }
+  }
+
   window.CihawukAuth = {
     getSession, logout,
     registerProducer, loginProducer, loginAdmin,
-    requireProducerAuth, requireAdminAuth
+    requireProducerAuth, requireAdminAuth,
+    adminResetProducerPassword
   };
 })();
